@@ -34,7 +34,7 @@ export default function ChatArea({ channel, messages: initialMessages, user, com
 
             const channelName = `chat.${channelIdRef.current}`
 
-            channel = window.Echo.channel(channelName)
+            channel = window.Echo.private(channelName)
             channel.listen('.message.sent', (data) => {
                 setMessages(prev => {
                     if (prev.some(m => m.id === data.id)) return prev

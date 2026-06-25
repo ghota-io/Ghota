@@ -8,6 +8,7 @@ use App\Models\Channel;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class MessageController extends Controller
 {
@@ -28,6 +29,14 @@ class MessageController extends Controller
 
     public function store(MessageRequest $request, Channel $channel): JsonResponse
     {
+        $key = 'send-message:' . $request->user()->id;
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            return response()->json(['message' => 'Muitas mensagens. Aguarda um pouco.'], 429);
+        }
+
+        RateLimiter::hit($key, 10);
+
         $message = $channel->messages()->create([
             "user_id" => $request->user()->id,
             "content" => $request->input("content"),

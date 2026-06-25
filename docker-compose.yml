@@ -19,6 +19,8 @@ services:
       - DB_USERNAME=ghota
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
       - MAIL_MAILER=smtp
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
@@ -30,7 +32,37 @@ services:
     depends_on:
       pgsql:
         condition: service_healthy
+      redis:
+        condition: service_started
       mailpit:
+        condition: service_started
+    networks:
+      - ghota-network
+
+  app-2:
+    build:
+      context: ./web
+      target: dev
+    container_name: ghota-app-2
+    volumes:
+      - ./web:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=ghota
+      - DB_USERNAME=ghota
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
         condition: service_started
     networks:
       - ghota-network
@@ -40,6 +72,7 @@ services:
     container_name: ghota-nginx
     ports:
       - "8080:80"
+      - "8082:8082"
     volumes:
       - ./web:/var/www/html
       - ./web/docker/nginx/conf.d:/etc/nginx/conf.d
@@ -85,10 +118,87 @@ services:
       - DB_DATABASE=ghota
       - DB_USERNAME=ghota
       - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
     command: php artisan reverb:start --debug
     depends_on:
       pgsql:
         condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - ghota-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ghota-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ghota-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  reverb-2:
+    build:
+      context: ./web
+      target: dev
+    container_name: ghota-reverb-2
+    volumes:
+      - ./web:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=ghota
+      - DB_USERNAME=ghota
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - REVERB_SCALING_ENABLED=true
+    command: php artisan reverb:start --debug
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - ghota-network
+
+  worker:
+    build:
+      context: ./web
+      target: dev
+    container_name: ghota-worker
+    volumes:
+      - ./web:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=ghota
+      - DB_USERNAME=ghota
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+    command: php artisan queue:listen --tries=1 --timeout=0
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - ghota-network
 
@@ -103,6 +213,7 @@ services:
 
 volumes:
   pgsql-data:
+  redis-data:
 
 networks:
   ghota-network:
