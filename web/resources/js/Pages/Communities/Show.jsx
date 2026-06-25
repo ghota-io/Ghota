@@ -51,28 +51,28 @@ function PricingCard({ plan, community, isAuthenticated, hasFreePlan, recommende
     const btn = cta()
 
     return (
-        <div className={`bg-slate-950/70 rounded-2xl p-6 relative ${recommended ? 'border-2 border-violet-500/30' : 'border border-white/5'}`}>
+        <div className={`bg-white dark:bg-[#2b2d31] rounded-2xl p-6 relative border border-gray-200 dark:border-[#1e1f22] ${recommended ? 'ring-2 ring-violet-500/30' : ''}`}>
             {recommended && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
                     Acesso Recomendado
                 </div>
             )}
             <div className="space-y-4 pt-2">
-                <h3 className="font-extrabold text-sm text-slate-400 uppercase tracking-wider">{plan.name}</h3>
+                <h3 className="font-extrabold text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">{plan.name}</h3>
                 <div className="flex items-baseline gap-1.5">
-                    <span className="font-extrabold text-white text-4xl">{plan.is_free ? '0' : `${plan.price}`}€</span>
-                    <span className="text-xs text-slate-400">{plan.is_free ? '' : '/ mês'}</span>
+                    <span className="font-extrabold text-gray-900 dark:text-white text-4xl">{plan.is_free ? '0' : `${plan.price}`}€</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{plan.is_free ? '' : '/ mês'}</span>
                 </div>
                 {plan.description && (
-                    <p className="text-xs text-slate-400">{plan.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{plan.description}</p>
                 )}
 
-                <hr className="border-white/5" />
+                <hr className="border-gray-200 dark:border-[#1e1f22]" />
 
-                <ul className="text-xs text-slate-300 space-y-2.5">
+                <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-2.5">
                     {(plan.is_free ? planFeatures.slice(0, 1) : planFeatures).map((f, i) => (
                         <li key={i} className="flex items-center gap-2">
-                            <Check className="w-4 h-4 text-emerald-400" /> {f}
+                            <Check className="w-4 h-4 text-emerald-500" /> {f}
                         </li>
                     ))}
                 </ul>
@@ -93,7 +93,7 @@ function PricingCard({ plan, community, isAuthenticated, hasFreePlan, recommende
                     </button>
                 )}
 
-                <p className="text-[10px] text-slate-500 text-center">
+                <p className="text-[10px] text-gray-400 text-center">
                     <Shield className="w-3 h-3 text-emerald-500 inline mr-1" />
                     Pagamentos processados via Stripe.
                 </p>
@@ -105,12 +105,12 @@ function PricingCard({ plan, community, isAuthenticated, hasFreePlan, recommende
 function FeatureCard({ icon: Icon, title, desc }) {
     return (
         <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
                 <Icon className="w-4 h-4" />
             </div>
             <div>
-                <h4 className="text-sm font-bold text-white">{title}</h4>
-                <p className="text-xs text-slate-400 mt-1">{desc}</p>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">{title}</h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{desc}</p>
             </div>
         </div>
     )
@@ -130,23 +130,23 @@ export default function Show({ community }) {
         <>
             <Head title={community.name} />
 
-            <div className="min-h-screen bg-[#05020c] font-sans">
+            <div className="min-h-screen bg-gray-50 dark:bg-[#1e1f22] font-sans">
                 <GhotaNavbar community={community} />
 
                 <div className="max-w-5xl mx-auto pt-28 pb-16 px-4 space-y-8 animate-fadeIn">
                     {/* Banner + Community Header */}
-                    <div className="bg-slate-950/70 border border-white/5 rounded-2xl overflow-hidden">
-                        <div className="h-44 bg-gradient-to-r from-indigo-950 via-purple-950 to-pink-950 relative" />
-                        <div className="px-8 pb-6 pt-0 relative flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-10">
+                    <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl overflow-hidden shadow-sm">
+                        <div className="h-44 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-950 dark:via-purple-950 dark:to-pink-950 relative" />
+                        <div className="px-8 pb-6 pt-0 relative flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-4">
                             <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
-                                <div className="w-20 h-20 rounded-2xl border-4 border-[#05020c] bg-indigo-600 flex items-center justify-center text-white text-4xl font-extrabold shadow-2xl shrink-0">
+                                <div className="w-20 h-20 rounded-2xl border-4 border-white dark:border-[#1e1f22] bg-indigo-600 flex items-center justify-center text-white text-4xl font-extrabold shadow-2xl shrink-0">
                                     {community.name.charAt(0)}
                                 </div>
                                 <div className="mb-2">
-                                    <h1 className="font-extrabold text-2xl text-white">{community.name}</h1>
-                                    <p className="text-xs text-slate-400 mt-1">
+                                    <h1 className="font-extrabold text-2xl text-gray-900 dark:text-white">{community.name}</h1>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         {community.owner && (
-                                            <>Espaço liderado por <span className="text-violet-400 font-semibold">@{community.owner.name}</span></>
+                                            <>por <span className="text-violet-600 dark:text-violet-400 font-semibold">@{community.owner.name}</span></>
                                         )}
                                         <span className="ml-2 inline-flex items-center gap-1">
                                             <Users className="w-3 h-3" /> {community.memberships_count ?? 0} membros
@@ -172,16 +172,16 @@ export default function Show({ community }) {
                         {/* Left Column: About + Features */}
                         <div className="md:col-span-2 space-y-6">
                             {/* About */}
-                            <div className="bg-slate-950/70 border border-white/5 rounded-2xl p-6 space-y-4">
-                                <h2 className="font-bold text-lg text-white border-b border-white/5 pb-2">Sobre a Comunidade</h2>
-                                <p className="text-sm text-slate-400 leading-relaxed">
+                            <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
+                                <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">Sobre a Comunidade</h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                                     {community.description || 'Sem descrição disponível.'}
                                 </p>
                             </div>
 
                             {/* Features */}
-                            <div className="bg-slate-950/70 border border-white/5 rounded-2xl p-6 space-y-4">
-                                <h2 className="font-bold text-lg text-white border-b border-white/5 pb-2">O que vais ter acesso imediato</h2>
+                            <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
+                                <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">O que vais ter acesso imediato</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {features.map((f, i) => (
                                         <FeatureCard key={i} icon={f.icon} title={f.title} desc={f.desc} />
