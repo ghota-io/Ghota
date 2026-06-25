@@ -1,0 +1,109 @@
+services:
+  app:
+    build:
+      context: ./web
+      target: dev
+    container_name: ghota-app
+    ports:
+      - "9000:9000"
+      - "5173:5173"
+    volumes:
+      - ./web:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=ghota
+      - DB_USERNAME=ghota
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=tls
+      - MAIL_FROM_ADDRESS=${MAIL_USERNAME}
+      - MAIL_FROM_NAME=Ghota
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    networks:
+      - ghota-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: ghota-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/var/www/html
+      - ./web/docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - ghota-network
+
+  pgsql:
+    image: postgres:17-alpine
+    container_name: ghota-pgsql
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ghota
+      POSTGRES_USER: ghota
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ghota -d ghota"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ghota-network
+
+  reverb:
+    build:
+      context: ./web
+      target: dev
+    container_name: ghota-reverb
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./web:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=ghota
+      - DB_USERNAME=ghota
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: php artisan reverb:start --debug
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    networks:
+      - ghota-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ghota-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - ghota-network
+
+volumes:
+  pgsql-data:
+
+networks:
+  ghota-network:
+    driver: bridge
