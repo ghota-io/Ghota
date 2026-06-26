@@ -11,15 +11,15 @@ use Inertia\Inertia;
 
 class JoinCommunityController extends Controller
 {
-    private function redirectToChannel(Community $community)
+    private function redirectToApp(Community $community)
     {
         $first = $community->channels()->orderBy('order')->orderBy('id')->first();
 
         if ($first) {
-            return redirect()->route('communities.channel', [$community, $first->name]);
+            return redirect()->route('communities.app', [$community->slug, 'canais', $first->name]);
         }
 
-        return redirect()->route('communities.show', $community);
+        return redirect()->route('communities.app', [$community->slug, 'canais']);
     }
 
     public function __invoke(Request $request, Community $community)
@@ -29,8 +29,10 @@ class JoinCommunityController extends Controller
             ->first();
 
         if ($existing) {
-            return $this->redirectToChannel($community);
+            return $this->redirectToApp($community);
         }
+
+        $defaultRole = $community->getDefaultRole();
 
         $freePlan = $community->plans()->where('is_free', true)->first();
 
@@ -39,9 +41,10 @@ class JoinCommunityController extends Controller
                 'community_id' => $community->id,
                 'user_id' => $request->user()->id,
                 'role' => 'member',
+                'community_role_id' => $defaultRole->id,
             ]);
 
-            return $this->redirectToChannel($community);
+            return $this->redirectToApp($community);
         }
 
         $request->validate(['plan_id' => 'required|exists:community_plans,id']);
@@ -94,9 +97,10 @@ class JoinCommunityController extends Controller
             'community_id' => $community->id,
             'user_id' => $request->user()->id,
             'role' => 'member',
+            'community_role_id' => $defaultRole->id,
         ]);
 
-        return $this->redirectToChannel($community);
+        return $this->redirectToApp($community);
     }
 
     private function getOrCreateStripeCustomer($user): \Stripe\Customer

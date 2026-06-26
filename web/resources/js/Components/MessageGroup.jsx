@@ -21,17 +21,17 @@ export default function MessageGroup({ group, currentUserId, onEdit, onDelete })
     }
 
     return (
-        <div className="py-0.5 hover:bg-white/[0.02] px-5">
+        <div className="py-0.5 hover:bg-gray-50 dark:hover:bg-white/[0.02] px-5">
             <div className="flex items-start gap-3">
                 <div className="w-10 shrink-0 flex justify-center pt-0.5">
                     <UserAvatar user={group.user} />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 mt-0.5">
-                        <span className="text-sm font-semibold text-white/90 hover:underline cursor-pointer">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:underline cursor-pointer">
                             {group.user.name}
                         </span>
-                        <span className="text-[11px] text-white/30">
+                        <span className="text-[11px] text-gray-400 dark:text-gray-500">
                             {format(firstMessage.created_at)}
                         </span>
                     </div>
@@ -118,14 +118,14 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                             onChange={(e) => setEditContent(e.target.value)}
                             onKeyDown={handleKeyDown}
                             disabled={saving}
-                            className="flex-1 bg-[#1a0038] text-white text-sm px-3 py-2 rounded-lg outline-none border border-[#6C3BFF]/50 resize-none min-h-[60px] placeholder-white/30"
+                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[60px] placeholder-gray-400 dark:placeholder-gray-500"
                         />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                         <button
                             onClick={handleSaveEdit}
                             disabled={!editContent.trim() || saving}
-                            className="flex items-center gap-1.5 text-xs font-medium bg-[#6C3BFF] text-white px-3 py-1.5 rounded-md hover:bg-[#7d4fff] disabled:opacity-50 transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-medium bg-violet-600 text-white px-3 py-1.5 rounded-md hover:bg-violet-700 disabled:opacity-50 transition-colors"
                         >
                             <Check className="w-3.5 h-3.5" />
                             Guardar
@@ -133,7 +133,7 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                         <button
                             onClick={handleCancelEdit}
                             disabled={saving}
-                            className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white px-3 py-1.5 rounded-md hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                         >
                             <X className="w-3.5 h-3.5" />
                             Cancelar
@@ -144,22 +144,22 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
         }
 
         return (
-            <div className="group py-0.5 pr-5 relative hover:bg-white/[0.02]">
-                <div className="text-sm text-white/80 whitespace-pre-wrap break-words pr-16">
+            <div className="group py-0.5 pr-5 relative hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words pr-16">
                     {message.content}
                 </div>
                 {isAuthor && (
-                    <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-[#0d0026] rounded-md border border-white/10 shadow-lg transition-opacity">
+                    <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white dark:bg-[#2b2d31] rounded-md border border-gray-200 dark:border-[#1e1f22] shadow-lg transition-opacity">
                         <button
                             onClick={handleStartEdit}
-                            className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#35373c] rounded-md transition-colors"
                             title="Editar mensagem"
                         >
                             <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="p-1.5 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
                             title="Eliminar mensagem"
                         >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -183,14 +183,14 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                             onChange={(e) => setEditContent(e.target.value)}
                             onKeyDown={handleKeyDown}
                             disabled={saving}
-                            className="flex-1 bg-[#1a0038] text-white text-sm px-3 py-2 rounded-lg outline-none border border-[#6C3BFF]/50 resize-none min-h-[60px] placeholder-white/30"
+                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[60px] placeholder-gray-400 dark:placeholder-gray-500"
                         />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                         <button
                             onClick={handleSaveEdit}
                             disabled={!editContent.trim() || saving}
-                            className="flex items-center gap-1.5 text-xs font-medium bg-[#6C3BFF] text-white px-3 py-1.5 rounded-md hover:bg-[#7d4fff] disabled:opacity-50 transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-medium bg-violet-600 text-white px-3 py-1.5 rounded-md hover:bg-violet-700 disabled:opacity-50 transition-colors"
                         >
                             <Check className="w-3.5 h-3.5" />
                             Guardar
@@ -198,7 +198,7 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                         <button
                             onClick={handleCancelEdit}
                             disabled={saving}
-                            className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white px-3 py-1.5 rounded-md hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                         >
                             <X className="w-3.5 h-3.5" />
                             Cancelar
@@ -210,36 +210,36 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
     }
 
     return (
-        <div className="flex items-start gap-3 group py-0.5 px-5 relative hover:bg-white/[0.02] pt-0.5">
+        <div className="flex items-start gap-3 group py-0.5 px-5 relative hover:bg-gray-50 dark:hover:bg-white/[0.02] pt-0.5">
             {showHeader && <UserAvatar user={user} />}
             {!showHeader && <div className="w-10 shrink-0" />}
             <div className="flex-1 min-w-0 relative">
                 {showHeader && (
                     <div className="flex items-baseline gap-2 mt-0.5">
-                        <span className="text-sm font-semibold text-white/90 hover:underline cursor-pointer">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:underline cursor-pointer">
                             {user.name}
                         </span>
-                        <span className="text-[11px] text-white/30">
+                        <span className="text-[11px] text-gray-400 dark:text-gray-500">
                             {format(message.created_at)}
                         </span>
                     </div>
                 )}
-                <div className="text-sm text-white/80 whitespace-pre-wrap break-words mt-0.5 pr-16">
+                <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mt-0.5 pr-16">
                     {message.content}
                 </div>
 
                 {isAuthor && (
-                    <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-[#0d0026] rounded-md border border-white/10 shadow-lg transition-opacity">
+                    <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white dark:bg-[#2b2d31] rounded-md border border-gray-200 dark:border-[#1e1f22] shadow-lg transition-opacity">
                         <button
                             onClick={handleStartEdit}
-                            className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#35373c] rounded-md transition-colors"
                             title="Editar mensagem"
                         >
                             <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="p-1.5 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
                             title="Eliminar mensagem"
                         >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -260,7 +260,7 @@ function UserAvatar({ user }) {
         .slice(0, 2)
 
     return (
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6C3BFF] to-[#B46CFF] flex items-center justify-center text-white text-xs font-bold shrink-0 mt-1">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-1">
             {initials}
         </div>
     )

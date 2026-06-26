@@ -69,7 +69,7 @@ export default function Subscribe({ community, isMember }) {
                                 A tua subscrição está ativa. Podes aceder diretamente aos canais da comunidade.
                             </p>
                             <Link
-                                href={route('communities.show', community.slug)}
+                                href={route('communities.app', [community.slug, 'canais'])}
                                 className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-violet-600/20"
                             >
                                 Ir para a comunidade

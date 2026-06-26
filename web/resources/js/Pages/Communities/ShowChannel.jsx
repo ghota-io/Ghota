@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import GhotaNavbar from '@/Components/GhotaNavbar'
+import ActivityBar from '@/Components/ActivityBar'
 import Sidebar from '@/Components/Sidebar'
 import ChatArea from '@/Components/ChatArea'
 
@@ -26,8 +27,9 @@ export default function ShowChannel({ community, channel, messages }) {
     }
 
     return (
-        <div className="h-screen flex flex-col bg-[#0a001a] overflow-hidden">
+        <div className="h-screen flex flex-col bg-gray-50 dark:bg-[#1e1f22] overflow-hidden">
             <div className="flex flex-1 overflow-hidden">
+                <ActivityBar community={community} user={user} />
                 <Sidebar
                     community={community}
                     currentChannel={channel}

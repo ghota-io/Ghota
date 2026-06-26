@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { router } from '@inertiajs/react'
-import { Hash, FileText, Plus, ChevronDown, ChevronRight, MoreVertical, Pencil, Trash2, X, Check } from 'lucide-react'
+import { Link, router, usePage } from '@inertiajs/react'
+import { Hash, FileText, Plus, ChevronDown, ChevronRight, Pencil, Trash2, X, Check, ChevronsUpDown } from 'lucide-react'
 
 export default function Sidebar({
     community,
@@ -10,6 +10,9 @@ export default function Sidebar({
     navigateToChannel,
     isOwner,
 }) {
+    const { myCommunities } = usePage().props
+    const [switcherOpen, setSwitcherOpen] = useState(false)
+    const switcherRef = useRef(null)
     const [contextMenu, setContextMenu] = useState(null)
     const [editingChannelId, setEditingChannelId] = useState(null)
     const [editingCategoryId, setEditingCategoryId] = useState(null)
@@ -27,6 +30,9 @@ export default function Sidebar({
         const handler = (e) => {
             if (contextRef.current && !contextRef.current.contains(e.target)) {
                 setContextMenu(null)
+            }
+            if (switcherRef.current && !switcherRef.current.contains(e.target)) {
+                setSwitcherOpen(false)
             }
         }
         document.addEventListener('mousedown', handler)
@@ -183,46 +189,68 @@ export default function Sidebar({
     )
 
     return (
-        <aside className="w-60 shrink-0 bg-[#0d0026] flex flex-col overflow-hidden border-r border-white/5">
-            <div className="h-12 flex items-center px-4 border-b border-white/5 shrink-0">
-                <span className="text-sm font-semibold text-white/80 truncate">
-                    {community.name}
-                </span>
+        <aside className="w-60 shrink-0 bg-white dark:bg-[#232428] flex flex-col overflow-hidden border-r border-gray-200 dark:border-[#1e1f22]">
+            <div className="h-12 flex items-center px-3 border-b border-gray-200 dark:border-[#1e1f22] shrink-0 relative" ref={switcherRef}>
+                <button
+                    onClick={() => setSwitcherOpen(!switcherOpen)}
+                    className="flex items-center gap-1.5 flex-1 min-w-0 text-left cursor-pointer"
+                >
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {community.name}
+                    </span>
+                    <ChevronsUpDown className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-500" />
+                </button>
+
+                {switcherOpen && (
+                    <div className="absolute left-2 top-full mt-1 w-56 rounded-xl border border-gray-200 dark:border-[#1e1f22] bg-white dark:bg-[#2b2d31] shadow-lg py-2 z-50">
+                        <Link
+                            href={route('dashboard')}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
+                            onClick={() => setSwitcherOpen(false)}
+                        >
+                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Dashboard
+                        </Link>
+                        <Link
+                            href={route('communities.index')}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
+                            onClick={() => setSwitcherOpen(false)}
+                        >
+                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                            </svg>
+                            Descobrir Comunidades
+                        </Link>
+
+                        {myCommunities?.length > 0 && (
+                            <>
+                                <div className="h-px bg-gray-100 dark:bg-[#1e1f22] my-2 mx-4" />
+                                <div className="px-4 py-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                    As minhas comunidades
+                                </div>
+                                {myCommunities.map((c) => (
+                                    <Link
+                                        key={c.id}
+                                        href={route('communities.channel', [c.slug, 'geral'])}
+                                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
+                                        onClick={() => setSwitcherOpen(false)}
+                                    >
+                                        <span className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                                            {c.name.charAt(0)}
+                                        </span>
+                                        <span className="truncate">{c.name}</span>
+                                    </Link>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin">
-                {/* Quick links */}
-                <div className="space-y-0.5 mb-3">
-                    <SidebarLink
-                        icon={<SettingsIcon />}
-                        label="Gerir"
-                        href={route('communities.manage', community.slug)}
-                        active={false}
-                    />
-                    <SidebarLink
-                        icon={<UsersIcon />}
-                        label="Membros"
-                        href="#"
-                        active={false}
-                    />
-                    <SidebarLink
-                        icon={<Hash className="w-4 h-4" />}
-                        label="Canais"
-                        href={route('communities.channel', [community.slug, currentChannel?.name])}
-                        active={true}
-                    />
-                    {community.plans?.length > 1 && (
-                        <SidebarLink
-                            icon={<CreditCardIcon />}
-                            label="Planos"
-                            href="#"
-                            active={false}
-                        />
-                    )}
-                </div>
-
-                <div className="h-px bg-white/5 mx-2 mb-2" />
-
                 {/* Categories */}
                 {categories.map((cat) => {
                     const isCollapsed = collapsedCategories[cat.id]
@@ -233,8 +261,8 @@ export default function Sidebar({
                         <div key={cat.id} className="mb-1">
                             <div
                                 className={`group flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none
-                                    ${isActiveInCategory ? 'text-white/70' : 'text-white/40'}
-                                    hover:text-white/70`}
+                                    ${isActiveInCategory ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}
+                                    hover:text-gray-700 dark:hover:text-gray-200`}
                                 onClick={() => toggleCategory(cat.id)}
                                 onContextMenu={isOwner ? (e) => handleContextMenu(e, 'category', cat) : undefined}
                             >
@@ -248,7 +276,7 @@ export default function Sidebar({
                                 {isOwner && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setCreatingForCategory(cat.id) }}
-                                        className="ml-auto opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/70 transition-opacity"
+                                        className="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-opacity"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                     </button>
@@ -263,7 +291,7 @@ export default function Sidebar({
                                         if (editingChannelId === ch.id) {
                                             return (
                                                 <div key={ch.id} className="flex items-center gap-1 px-2 py-1">
-                                                    <span className="text-white/40 text-xs">
+                                                    <span className="text-gray-400 dark:text-gray-500 text-xs">
                                                         {ch.type === 'page' ? '📄' : '#'}
                                                     </span>
                                                     <input
@@ -275,12 +303,12 @@ export default function Sidebar({
                                                             if (e.key === 'Escape') setEditingChannelId(null)
                                                         }}
                                                         onBlur={() => saveEditChannel(ch)}
-                                                        className="flex-1 bg-[#1a0038] text-white text-sm px-1.5 py-0.5 rounded outline-none border border-[#6C3BFF]/50"
+                                                        className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-1.5 py-0.5 rounded outline-none border border-violet-400/50"
                                                     />
-                                                    <button onClick={() => setEditingChannelId(null)} className="text-white/30 hover:text-white/70">
+                                                    <button onClick={() => setEditingChannelId(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                                         <X className="w-3 h-3" />
                                                     </button>
-                                                    <button onClick={() => saveEditChannel(ch)} className="text-green-400 hover:text-green-300">
+                                                    <button onClick={() => saveEditChannel(ch)} className="text-emerald-500 hover:text-emerald-400">
                                                         <Check className="w-3 h-3" />
                                                     </button>
                                                 </div>
@@ -294,8 +322,8 @@ export default function Sidebar({
                                                 onContextMenu={isOwner ? (e) => handleContextMenu(e, 'channel', ch) : undefined}
                                                 className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-sm transition-colors text-left
                                                     ${isActive
-                                                        ? 'bg-[#6C3BFF]/20 text-white font-medium'
-                                                        : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                                                        ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-200 font-medium'
+                                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#35373c]'
                                                     }`}
                                             >
                                                 <span className="w-4 text-center shrink-0 text-xs">
@@ -308,7 +336,7 @@ export default function Sidebar({
 
                                     {creatingForCategory === cat.id && (
                                         <div className="flex items-center gap-1 px-2 py-1">
-                                            <span className="text-white/40 text-xs">#</span>
+                                            <span className="text-gray-400 dark:text-gray-500 text-xs">#</span>
                                             <input
                                                 ref={createInputRef}
                                                 value={newChannelName}
@@ -319,7 +347,7 @@ export default function Sidebar({
                                                 }}
                                                 onBlur={() => handleBlurCreateChannel(cat.id)}
                                                 placeholder="novo-canal"
-                                                className="flex-1 bg-[#1a0038] text-white text-sm px-1.5 py-0.5 rounded outline-none border border-[#6C3BFF]/50 placeholder-white/20"
+                                                className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-1.5 py-0.5 rounded outline-none border border-violet-400/50 placeholder-gray-400 dark:placeholder-gray-500"
                                             />
                                         </div>
                                     )}
@@ -332,7 +360,7 @@ export default function Sidebar({
                 {/* Uncategorized channels (legacy support) */}
                 {uncategorizedChannels.length > 0 && (
                     <div className="mb-1">
-                        <div className="flex items-center gap-1 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                        <div className="flex items-center gap-1 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                             <span className="truncate">Outros</span>
                         </div>
                         <div className="ml-1 space-y-0.5">
@@ -345,8 +373,8 @@ export default function Sidebar({
                                         onContextMenu={isOwner ? (e) => handleContextMenu(e, 'channel', ch) : undefined}
                                         className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-sm transition-colors text-left
                                             ${isActive
-                                                ? 'bg-[#6C3BFF]/20 text-white font-medium'
-                                                : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                                                ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-200 font-medium'
+                                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#35373c]'
                                             }`}
                                     >
                                         <span className="w-4 text-center shrink-0 text-xs">
@@ -364,7 +392,7 @@ export default function Sidebar({
                 {isOwner && !creatingCategory && (
                     <button
                         onClick={() => setCreatingCategory(true)}
-                        className="flex items-center gap-1.5 w-full px-2 py-1.5 text-sm text-white/30 hover:text-white/60 transition-colors mt-2"
+                        className="flex items-center gap-1.5 w-full px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mt-2"
                     >
                         <Plus className="w-3.5 h-3.5" />
                         Nova categoria
@@ -383,7 +411,7 @@ export default function Sidebar({
                             }}
                             onBlur={() => handleBlurCreateCategory()}
                             placeholder="Nome da categoria"
-                            className="flex-1 bg-[#1a0038] text-white text-sm px-1.5 py-0.5 rounded outline-none border border-[#6C3BFF]/50 placeholder-white/20"
+                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-1.5 py-0.5 rounded outline-none border border-violet-400/50 placeholder-gray-400 dark:placeholder-gray-500"
                         />
                     </div>
                 )}
@@ -393,21 +421,21 @@ export default function Sidebar({
             {contextMenu && (
                 <div
                     ref={contextRef}
-                    className="fixed z-[100] w-48 bg-[#1a0040] rounded-xl border border-white/10 shadow-2xl shadow-black/40 py-1.5"
+                    className="fixed z-[100] w-48 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1.5"
                     style={{ left: contextMenu.x, top: contextMenu.y }}
                 >
                     {contextMenu.type === 'channel' && (
                         <>
                             <button
                                 onClick={() => startEditChannel(contextMenu.item)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition"
+                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
                             >
-                                <Pencil className="w-4 h-4 text-white/40" />
+                                <Pencil className="w-4 h-4 text-gray-400" />
                                 Editar canal
                             </button>
                             <button
                                 onClick={() => deleteChannel(contextMenu.item)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition"
+                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Eliminar canal
@@ -418,22 +446,22 @@ export default function Sidebar({
                         <>
                             <button
                                 onClick={() => startEditCategory(contextMenu.item)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition"
+                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
                             >
-                                <Pencil className="w-4 h-4 text-white/40" />
+                                <Pencil className="w-4 h-4 text-gray-400" />
                                 Editar categoria
                             </button>
                             <button
                                 onClick={() => setCreatingForCategory(contextMenu.item.id)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition"
+                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
                             >
-                                <Plus className="w-4 h-4 text-white/40" />
+                                <Plus className="w-4 h-4 text-gray-400" />
                                 Novo canal
                             </button>
-                            <div className="h-px bg-white/5 my-1 mx-4" />
+                            <div className="h-px bg-gray-200 dark:bg-[#1e1f22] my-1 mx-4" />
                             <button
                                 onClick={() => deleteCategory(contextMenu.item)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition"
+                                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 Eliminar categoria
@@ -443,49 +471,5 @@ export default function Sidebar({
                 </div>
             )}
         </aside>
-    )
-}
-
-function SidebarLink({ icon, label, href, active }) {
-    return (
-        <a
-            href={href}
-            className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors
-                ${active ? 'bg-[#6C3BFF]/20 text-white font-medium' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
-        >
-            <span className="w-4 h-4 shrink-0 flex items-center justify-center text-current">
-                {icon}
-            </span>
-            <span>{label}</span>
-        </a>
-    )
-}
-
-function SettingsIcon() {
-    return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-        </svg>
-    )
-}
-
-function UsersIcon() {
-    return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    )
-}
-
-function CreditCardIcon() {
-    return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="1" y="4" width="22" height="16" rx="2" />
-            <line x1="1" y1="10" x2="23" y2="10" />
-        </svg>
     )
 }

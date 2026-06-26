@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Community;
+use App\Models\CommunityRole;
 use App\Models\Membership;
 use App\Models\Subscription;
 use App\Models\User;
@@ -66,11 +67,15 @@ class StripeWebhookController extends Controller
             ]);
         }
 
+        $community = Community::find($communityId);
+        $defaultRole = $community?->getDefaultRole();
+
         Membership::firstOrCreate([
             'community_id' => $communityId,
             'user_id' => $userId,
         ], [
             'role' => 'member',
+            'community_role_id' => $defaultRole?->id,
         ]);
     }
 }

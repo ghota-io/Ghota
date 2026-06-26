@@ -94,8 +94,10 @@ class ChannelController extends Controller
             abort(403);
         }
 
+        $community = $channel->community;
+
         $channel->delete();
 
-        return redirect()->back();
+        return redirect()->route('communities.app', [$community->slug, 'canais']);
     }
 }

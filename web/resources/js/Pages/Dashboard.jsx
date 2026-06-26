@@ -39,7 +39,7 @@ export default function Dashboard({ ownedCommunities, memberCommunities }) {
                                 {ownedCommunities.map((c) => (
                                     <Link
                                         key={c.id}
-                                        href={route('communities.show', c.slug)}
+                                        href={route('communities.app', [c.slug, 'canais'])}
                                         className="flex items-center gap-4 bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-5 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md hover:shadow-indigo-100/50 dark:hover:shadow-black/30 transition-all group"
                                     >
                                         <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
@@ -90,7 +90,7 @@ export default function Dashboard({ ownedCommunities, memberCommunities }) {
                                 {memberCommunities.map((c) => (
                                     <Link
                                         key={c.id}
-                                        href={route('communities.show', c.slug)}
+                                        href={route('communities.app', [c.slug, 'canais'])}
                                         className="flex items-center gap-4 bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-5 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md hover:shadow-indigo-100/50 dark:hover:shadow-black/30 transition-all group"
                                     >
                                         <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-bold shrink-0">

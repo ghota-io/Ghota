@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Channel;
 use App\Models\Community;
+use App\Models\CommunityRole;
 use App\Models\Membership;
 use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -120,7 +122,7 @@ class CommunityController extends Controller
             if ($isMember) {
                 $firstChannel = $community->channels()->orderBy('order')->orderBy('id')->first();
                 if ($firstChannel) {
-                    return redirect()->route('communities.channel', [$community, $firstChannel->name]);
+                    return redirect()->route('communities.app', [$community->slug, 'canais', $firstChannel->name]);
                 }
             }
         }
@@ -142,28 +144,13 @@ class CommunityController extends Controller
 
     public function channel(Community $community, string $canal)
     {
-        $channel = $community->channels()->where('name', $canal)->firstOrFail();
+        $channel = $community->channels()->where('name', $canal)->first();
 
-        $user = request()->user();
-        if (!$user || !Membership::where('community_id', $community->id)->where('user_id', $user->id)->exists()) {
-            abort(403);
+        if (!$channel) {
+            return redirect()->route('communities.app', [$community->slug, 'canais']);
         }
 
-        $community->load('categories.channels', 'plans');
-
-        $messages = $channel->messages()
-            ->with('user')
-            ->latest()
-            ->limit(50)
-            ->get()
-            ->reverse()
-            ->values();
-
-        return Inertia::render('Communities/ShowChannel', [
-            'community' => $community,
-            'channel' => $channel,
-            'messages' => $messages,
-        ]);
+        return redirect()->route('communities.app', [$community->slug, 'canais', $canal]);
     }
 
     public function edit(Community $community)
@@ -239,17 +226,83 @@ class CommunityController extends Controller
         return redirect()->route('communities.index');
     }
 
+    public function app(Request $request, Community $community, string $section = 'canais', ?string $sub = null)
+    {
+        $user = $request->user();
+
+        if (!$user || !Membership::where('community_id', $community->id)->where('user_id', $user->id)->exists()) {
+            abort(403);
+        }
+
+        $data = [
+            'community' => $community,
+            'section' => $section,
+        ];
+
+        $community->load('categories.channels', 'plans');
+
+        if ($section === 'canais') {
+            $channelName = $sub ?? $community->channels()->orderBy('order')->orderBy('id')->value('name');
+            $channel = $community->channels()->where('name', $channelName)->firstOrFail();
+
+            $messages = $channel->messages()
+                ->with('user')
+                ->latest()
+                ->limit(50)
+                ->get()
+                ->reverse()
+                ->values();
+
+            $data['channel'] = $channel;
+            $data['messages'] = $messages;
+        } elseif ($section === 'gerir') {
+            if ($user->id !== $community->owner_id) {
+                abort(403);
+            }
+            $community->load(['plans', 'channels', 'members.user']);
+            $data['initialTab'] = $sub ?? 'settings';
+        } elseif ($section === 'membros') {
+            $community->load(['members.user', 'members.communityRole']);
+
+            $userIds = $community->members->pluck('user_id');
+            $subscriptions = Subscription::where('community_id', $community->id)
+                ->whereIn('user_id', $userIds)
+                ->where('status', 'active')
+                ->with('plan')
+                ->get()
+                ->keyBy('user_id');
+
+            $data['membersList'] = $community->members->map(function ($member) use ($subscriptions) {
+                $sub = $subscriptions->get($member->user_id);
+                return [
+                    'id' => $member->id,
+                    'role' => $member->role,
+                    'user' => $member->user,
+                    'plan_name' => $sub?->plan?->name ?? ($member->role === 'owner' ? '—' : 'Grátis'),
+                    'community_role_id' => $member->community_role_id,
+                    'community_role_name' => $member->communityRole?->name ?? ($member->role === 'owner' ? 'Owner' : '—'),
+                    'joined_at' => $member->created_at,
+                ];
+            });
+
+            $community->getDefaultRole();
+            $community->load('roles');
+            $data['membersSub'] = $sub ?? 'lista';
+        }
+
+        return Inertia::render('Communities/AppLayout', $data);
+    }
+
     public function manage(Community $community)
     {
         if (request()->user()->id !== $community->owner_id) {
             abort(403);
         }
 
-        $community->load(['plans', 'channels', 'members.user']);
-
-        return Inertia::render('Communities/Manage', [
-            'community' => $community,
-            'initialTab' => request()->query('tab', 'settings'),
+        return redirect()->route('communities.app', [
+            $community->slug,
+            'gerir',
+            request()->query('tab', 'settings'),
         ]);
     }
 
@@ -266,6 +319,84 @@ class CommunityController extends Controller
         Membership::where('community_id', $community->id)
             ->where('user_id', $user->id)
             ->delete();
+
+        return redirect()->back();
+    }
+
+    public function changeMemberRole(Request $request, Community $community, \App\Models\User $user)
+    {
+        if ($request->user()->id !== $community->owner_id) {
+            abort(403);
+        }
+
+        if ($user->id === $community->owner_id) {
+            abort(422, 'Não podes alterar o cargo do owner.');
+        }
+
+        $data = $request->validate([
+            'community_role_id' => 'nullable|exists:community_roles,id',
+        ]);
+
+        Membership::where('community_id', $community->id)
+            ->where('user_id', $user->id)
+            ->update(['community_role_id' => $data['community_role_id']]);
+
+        return redirect()->back();
+    }
+
+    public function storeRole(Request $request, Community $community)
+    {
+        if ($request->user()->id !== $community->owner_id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'permissions' => 'nullable|array',
+        ]);
+
+        $role = $community->roles()->create([
+            'name' => $data['name'],
+            'permissions' => $data['permissions'] ?? [],
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function updateRole(Request $request, Community $community, CommunityRole $role)
+    {
+        if ($request->user()->id !== $community->owner_id) {
+            abort(403);
+        }
+
+        if ($role->community_id !== $community->id) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'permissions' => 'nullable|array',
+        ]);
+
+        $role->update([
+            'name' => $data['name'],
+            'permissions' => $data['permissions'] ?? [],
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function destroyRole(Request $request, Community $community, CommunityRole $role)
+    {
+        if ($request->user()->id !== $community->owner_id) {
+            abort(403);
+        }
+
+        if ($role->community_id !== $community->id) {
+            abort(404);
+        }
+
+        $role->delete();
 
         return redirect()->back();
     }

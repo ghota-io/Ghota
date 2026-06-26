@@ -16,9 +16,9 @@ export default function PaymentSuccess({ community }) {
                         clearInterval(check);
                         setChecked(true);
                         setTimeout(() => {
-                            window.location.href = route('communities.channel', [
-                                community.slug,
-                                page.props.firstChannel ?? '#geral',
+                            window.location.href = route('communities.app', [
+                                community.slug, 'canais',
+                                page.props.firstChannel ?? 'geral',
                             ]);
                         }, 800);
                     }

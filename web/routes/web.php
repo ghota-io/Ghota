@@ -75,10 +75,18 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/comunidades/{community}/gerir', [CommunityController::class, 'manage'])->name('communities.manage');
     Route::delete('/comunidades/{community}/membros/{user}', [CommunityController::class, 'removeMember'])->name('communities.members.remove');
+    Route::put('/comunidades/{community}/membros/{user}/cargo', [CommunityController::class, 'changeMemberRole'])->name('communities.members.role');
+
+    Route::post('/comunidades/{community}/roles', [CommunityController::class, 'storeRole'])->name('communities.roles.store');
+    Route::put('/comunidades/{community}/roles/{role}', [CommunityController::class, 'updateRole'])->name('communities.roles.update');
+    Route::delete('/comunidades/{community}/roles/{role}', [CommunityController::class, 'destroyRole'])->name('communities.roles.destroy');
 
     Route::post('/categorias', [CategoryController::class, 'store'])->name('categories.store');
     Route::put('/categorias/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categorias/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Community internal — unified app layout
+    Route::get('/comunidades/{community}/app/{section?}/{sub?}', [CommunityController::class, 'app'])->name('communities.app');
 
     // Community internal — channel view
     Route::get('/comunidades/{community}/c/{canal}', [CommunityController::class, 'channel'])->name('communities.channel');

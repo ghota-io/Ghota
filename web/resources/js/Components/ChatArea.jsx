@@ -96,8 +96,8 @@ export default function ChatArea({ channel, messages: initialMessages, user, com
 
     if (loading) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-[#0a001a]">
-                <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-[#1e1f22]">
+                <Loader2 className="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
             </div>
         )
     }
@@ -109,26 +109,26 @@ export default function ChatArea({ channel, messages: initialMessages, user, com
     return (
         <div className="flex-1 flex flex-col min-h-0">
             {/* Channel header */}
-            <div className="shrink-0 h-12 flex items-center gap-2 px-5 border-b border-white/5">
-                <Hash className="w-5 h-5 text-white/40" />
-                <span className="text-base font-semibold text-white/90">{channel.name}</span>
+            <div className="shrink-0 h-12 flex items-center gap-2 px-5 border-b border-gray-200 dark:border-[#1e1f22]">
+                <Hash className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-base font-semibold text-gray-900 dark:text-white">{channel.name}</span>
             </div>
 
             {/* Messages area */}
             <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto py-4 scrollbar-thin"
+                className="flex-1 overflow-y-auto py-4 scrollbar-thin bg-gray-50 dark:bg-[#1e1f22]"
             >
                 {!hasMessages ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                        <div className="w-16 h-16 rounded-full bg-[#1a0038] flex items-center justify-center mb-4">
-                            <Hash className="w-7 h-7 text-white/20" />
+                        <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-[#232428] flex items-center justify-center mb-4">
+                            <Hash className="w-7 h-7 text-gray-300 dark:text-gray-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-white/60 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-1">
                             Nenhuma mensagem ainda
                         </h3>
-                        <p className="text-sm text-white/30 max-w-md">
-                            Sê o primeiro a escrever em <strong className="text-white/50">#{channel.name}</strong>!
+                        <p className="text-sm text-gray-400 dark:text-gray-500 max-w-md">
+                            Sê o primeiro a escrever em <strong className="text-gray-600 dark:text-gray-300">#{channel.name}</strong>!
                         </p>
                     </div>
                 ) : (
