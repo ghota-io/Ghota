@@ -6,6 +6,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\JoinCommunityController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -18,7 +19,7 @@ Route::get('/', function () {
         ->take(6)
         ->get();
 
-    return Inertia::render('Welcome', [
+    return Inertia::render('Public/Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'communities' => $communities,
@@ -57,6 +58,9 @@ Route::get('/comunidades', [CommunityController::class, 'index'])->name('communi
 Route::get('/comunidades/criar', [CommunityController::class, 'create'])->middleware('auth')->name('communities.create');
 Route::get('/comunidades/{community}', [CommunityController::class, 'show'])->name('communities.show');
 
+// Stripe webhook (sem auth, sem CSRF)
+Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+
 // Communities — autenticado
 Route::middleware('auth')->group(function () {
     Route::post('/comunidades', [CommunityController::class, 'store'])->name('communities.store');
@@ -66,6 +70,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/comunidades/{community}/entrar', [CommunityController::class, 'joinForm'])->name('communities.join');
     Route::post('/comunidades/{community}/entrar', JoinCommunityController::class)->name('communities.join.store');
+
+    Route::get('/comunidades/{community}/pagamento-sucesso', [CommunityController::class, 'paymentSuccess'])->name('communities.payment.success');
 
     Route::get('/comunidades/{community}/gerir', [CommunityController::class, 'manage'])->name('communities.manage');
     Route::delete('/comunidades/{community}/membros/{user}', [CommunityController::class, 'removeMember'])->name('communities.members.remove');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     ArrowRight, Globe, Download, Shield, Building2, TrendingUp,
     Users, UserPlus, MessageSquare, Heart,
@@ -50,10 +50,13 @@ export default function Welcome({ auth, communities }) {
                                         <Download className="w-4 h-4" />
                                         Download Ghota
                                     </a>
-                                    <a href="#" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white/80 border border-white/20 hover:bg-white/5 transition-all backdrop-blur-sm">
+                                    <Link
+                                        href={usePage().props.auth?.user ? route('dashboard') : route('communities.index')}
+                                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white/80 border border-white/20 hover:bg-white/5 transition-all backdrop-blur-sm"
+                                    >
                                         <Globe className="w-4 h-4" />
                                         Abrir no browser
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
 
@@ -267,13 +270,13 @@ export default function Welcome({ auth, communities }) {
                             Junta-te a criadores que já usam Ghota para partilhar conhecimento e crescer.
                         </p>
                         <div className="mt-8 flex flex-wrap justify-center gap-4">
-                            <a href="#" className="inline-flex items-center gap-2 bg-white text-[#12002E] px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-white/90 transition-all shadow-xl shadow-[#6C3BFF]/20">
+                            <Link href={route('dashboard')} className="inline-flex items-center gap-2 bg-white text-[#12002E] px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-white/90 transition-all shadow-xl shadow-[#6C3BFF]/20">
                                 Criar comunidade
                                 <ArrowRight className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-white/80 border border-white/20 hover:bg-white/5 transition-all backdrop-blur-sm">
+                            </Link>
+                            <Link href={route('communities.index')} className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-white/80 border border-white/20 hover:bg-white/5 transition-all backdrop-blur-sm">
                                 Explorar comunidades
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </section>

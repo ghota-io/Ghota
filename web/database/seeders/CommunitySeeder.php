@@ -122,7 +122,44 @@ class CommunitySeeder extends Seeder
             ],
         ]);
 
-        $this->command->info('5 comunidades mock criadas com planos customizáveis!');
+        $this->makeCommunity([
+            'owner' => $rui,
+            'name' => 'Tech Founders Club',
+            'desc' => 'Comunidade privada para fundadores de startups tech. Partilha de estratégias, conexões e oportunidades de investimento.',
+            'is_private' => true,
+            'plans' => [
+                ['name' => 'Mensal', 'price' => 29.99, 'desc' => 'Acesso a todos os canais e eventos exclusivos'],
+            ],
+            'members' => [$ana, $joao],
+            'channels' => ['boas-vindas', 'geral', 'fundraising', 'produto', 'networking'],
+            'messages' => [
+                [$rui, 'Bem-vindos ao Tech Founders Club 🚀 Este é um espaço seguro para fundadores discutirem desafios reais.'],
+                [$ana, 'Obrigada! Ando à procura de feedback sobre a minha estratégia de go-to-market.'],
+                [$joao, 'Boa! Também estou a lançar um produto e adorava ouvir opiniões.'],
+                [$rui, 'Vamos marcar uma sessão esta semana para discutirmos isso. Quem estiver disponível, avise!'],
+            ],
+        ]);
+
+        $this->makeCommunity([
+            'owner' => $sofia,
+            'name' => 'Design Critique Club',
+            'desc' => 'Comunidade privada para designers receberem críticas construtivas aos seus trabalhos. Apenas por convite.',
+            'is_private' => true,
+            'plans' => [
+                ['name' => 'Gratuito', 'price' => 0, 'is_free' => true, 'desc' => 'Acesso ao canal #geral com críticas semanais'],
+                ['name' => 'Pro', 'price' => 12.99, 'desc' => 'Críticas ilimitadas + mentorias individuais'],
+            ],
+            'members' => [$mario, $rui],
+            'channels' => ['boas-vindas', 'geral', 'críticas-ui', 'críticas-ux', 'recursos'],
+            'messages' => [
+                [$sofia, 'Bem-vindos ao Design Critique Club! 🎨 O objetivo é melhorarmos juntos através de feedback honesto.'],
+                [$mario, 'Adoro esta ideia! Tenho um redesign de dashboard que gostava de partilhar.'],
+                [$rui, 'Boa! Também tenho um projeto pessoal que preciso de opiniões.'],
+                [$sofia, 'Criem um tópico no canal #críticas-ui com os vossos screenshots e context. Vou dar feedback esta semana.'],
+            ],
+        ]);
+
+        $this->command->info('7 comunidades mock criadas com planos customizáveis!');
         $this->command->info('Users: ana@ghota.io, mario@ghota.io, joao@ghota.io, sofia@ghota.io, rui@ghota.io — password');
     }
 
@@ -140,6 +177,7 @@ class CommunitySeeder extends Seeder
             'slug' => $slug,
             'description' => $data['desc'],
             'is_visible' => true,
+            'is_private' => $data['is_private'] ?? false,
         ]);
 
         Membership::create([

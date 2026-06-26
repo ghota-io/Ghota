@@ -15,6 +15,7 @@ export default function Create({ community }) {
         name: community?.name ?? '',
         description: community?.description ?? '',
         is_visible: community?.is_visible ?? true,
+        is_private: community?.is_private ?? false,
     })
 
     const addPlan = () => {
@@ -178,6 +179,19 @@ export default function Create({ community }) {
                             />
                             <label htmlFor="is_visible" className="text-sm text-gray-700 dark:text-gray-300">
                                 Comunidade pública (visível na página de descoberta)
+                            </label>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="is_private"
+                                checked={data.is_private}
+                                onChange={(e) => setData('is_private', e.target.checked)}
+                                className="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="is_private" className="text-sm text-gray-700 dark:text-gray-300">
+                                Comunidade privada (só acede com código de convite)
                             </label>
                         </div>
 

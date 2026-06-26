@@ -16,6 +16,7 @@ class CommunityController extends Controller
         $query = $request->input('search');
 
         $communities = Community::where('is_visible', true)
+            ->where('is_private', false)
             ->with('owner')
             ->with('plans')
             ->withCount('memberships')
@@ -30,9 +31,17 @@ class CommunityController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $memberCommunityIds = [];
+        if ($request->user()) {
+            $memberCommunityIds = \App\Models\Membership::where('user_id', $request->user()->id)
+                ->pluck('community_id')
+                ->toArray();
+        }
+
         return Inertia::render('Communities/Index', [
             'communities' => $communities,
             'search' => $query,
+            'memberCommunityIds' => $memberCommunityIds,
         ]);
     }
 
@@ -48,6 +57,7 @@ class CommunityController extends Controller
             'description' => 'nullable|string',
             'banner' => 'nullable|image|max:2048',
             'is_visible' => 'boolean',
+            'is_private' => 'boolean',
             'plans' => 'required|array|min:1',
             'plans.*.name' => 'required|string|max:255',
             'plans.*.price' => 'required|numeric|min:0',
@@ -59,6 +69,7 @@ class CommunityController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'],
             'is_visible' => $validated['is_visible'] ?? true,
+            'is_private' => $validated['is_private'] ?? false,
             'owner_id' => $request->user()->id,
         ]);
 
@@ -96,9 +107,10 @@ class CommunityController extends Controller
         return redirect()->route('communities.show', $community);
     }
 
-    public function show(Community $community)
+    public function show(Community $community, Request $request)
     {
-        $user = request()->user();
+        $user = $request->user();
+        $isMember = false;
 
         if ($user) {
             $isMember = Membership::where('community_id', $community->id)
@@ -110,6 +122,13 @@ class CommunityController extends Controller
                 if ($firstChannel) {
                     return redirect()->route('communities.channel', [$community, $firstChannel->name]);
                 }
+            }
+        }
+
+        if ($community->isPrivate() && !$isMember) {
+            $providedCode = $request->query('code');
+            if (!$providedCode || $providedCode !== $community->code) {
+                abort(404);
             }
         }
 
@@ -171,6 +190,7 @@ class CommunityController extends Controller
             'description' => 'nullable|string',
             'banner' => 'nullable|image|max:2048',
             'is_visible' => 'boolean',
+            'is_private' => 'boolean',
             'plans' => 'required|array|min:1',
             'plans.*.name' => 'required|string|max:255',
             'plans.*.price' => 'required|numeric|min:0',
@@ -183,6 +203,7 @@ class CommunityController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'],
             'is_visible' => $validated['is_visible'] ?? true,
+            'is_private' => $validated['is_private'] ?? false,
         ]);
 
         $existingIds = collect($validated['plans'])->pluck('id')->filter();
@@ -264,6 +285,28 @@ class CommunityController extends Controller
         return Inertia::render('Communities/Subscribe', [
             'community' => $community,
             'isMember' => $existing !== null,
+        ]);
+    }
+
+    public function paymentSuccess(Community $community, Request $request)
+    {
+        $user = $request->user();
+
+        $membership = Membership::where('community_id', $community->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $firstChannel = $community->channels()
+            ->orderBy('order')
+            ->orderBy('id')
+            ->value('name');
+
+        $community->loadCount('memberships');
+
+        return Inertia::render('Communities/PaymentSuccess', [
+            'community' => $community,
+            'membership' => $membership ? true : false,
+            'firstChannel' => $firstChannel ?? 'geral',
         ]);
     }
 

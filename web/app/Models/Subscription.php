@@ -10,8 +10,11 @@ class Subscription extends Model
     protected $fillable = [
         'community_id',
         'user_id',
+        'plan_id',
         'plan_type',
         'status',
+        'stripe_session_id',
+        'stripe_payment_intent',
         'starts_at',
         'ends_at',
     ];
@@ -32,5 +35,10 @@ class Subscription extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
     }
 }

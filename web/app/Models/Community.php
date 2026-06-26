@@ -16,6 +16,8 @@ class Community extends Model
         'description',
         'banner',
         'is_visible',
+        'is_private',
+        'code',
     ];
 
     public function getRouteKeyName(): string
@@ -27,7 +29,13 @@ class Community extends Model
     {
         return [
             'is_visible' => 'boolean',
+            'is_private' => 'boolean',
         ];
+    }
+
+    public function isPrivate(): bool
+    {
+        return $this->is_private;
     }
 
     protected static function booted(): void
@@ -36,6 +44,7 @@ class Community extends Model
             if (empty($community->slug)) {
                 $community->slug = Str::slug($community->name);
             }
+            $community->code = $community->code ?? Str::random(10);
         });
     }
 

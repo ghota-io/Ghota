@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { Search, Users, Globe, Crown } from 'lucide-react'
 import GhotaNavbar from '@/Components/GhotaNavbar'
 
-export default function Index({ communities, search: initialSearch }) {
+export default function Index({ communities, search: initialSearch, memberCommunityIds }) {
     const [search, setSearch] = useState(initialSearch ?? '')
 
     useEffect(() => {
@@ -66,6 +66,11 @@ export default function Index({ communities, search: initialSearch }) {
                                     >
                                         <div className="h-32 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
                                             <div className="absolute inset-0 bg-black/20" />
+                                            {memberCommunityIds?.includes(community.id) && (
+                                                <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
+                                                    Membro
+                                                </span>
+                                            )}
                                             <div className="absolute bottom-3 left-4 right-4">
                                                 <h3 className="text-white font-bold text-lg leading-tight">{community.name}</h3>
                                             </div>

@@ -65,6 +65,7 @@ function SettingsSection({ community }) {
         name: community.name ?? '',
         description: community.description ?? '',
         is_visible: community.is_visible ?? true,
+        is_private: community.is_private ?? false,
     })
 
     const submit = (e) => {
@@ -105,6 +106,32 @@ function SettingsSection({ community }) {
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300">Comunidade pública (visível na página de descoberta)</span>
                 </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={data.is_private}
+                        onChange={(e) => setData('is_private', e.target.checked)}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Comunidade privada (só acede com código de convite)</span>
+                </label>
+                {community.code && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Código de convite</label>
+                        <div className="flex items-center gap-2">
+                            <code className="px-4 py-2.5 bg-gray-100 dark:bg-[#1e1f22] border border-gray-300 dark:border-[#1e1f22] rounded-xl text-sm font-mono text-gray-900 dark:text-white select-all">
+                                {community.code}
+                            </code>
+                            <button
+                                type="button"
+                                onClick={() => navigator.clipboard.writeText(community.code)}
+                                className="px-3 py-2.5 text-sm text-indigo-600 hover:text-indigo-500 font-medium transition"
+                            >
+                                Copiar
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <button
                     type="submit"
                     disabled={processing}

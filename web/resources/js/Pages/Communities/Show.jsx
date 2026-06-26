@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import {
     Activity, BookOpen, MessageSquare, Bell,
-    Check, ChevronDown, ArrowRight, Shield, Users
+    Check, ArrowRight, Shield, Users, ArrowLeft, Sparkles, ChevronDown
 } from 'lucide-react'
 import GhotaNavbar from '@/Components/GhotaNavbar'
 
@@ -28,11 +29,19 @@ const defaultFeatures = [
     },
 ]
 
-const planFeatures = [
-    'Acesso total a todos os canais',
-    'Participação em discussões',
-    'Suporte da comunidade',
-]
+const planFeatures = {
+    free: [
+        'Acesso ao canal #geral',
+        'Ver anúncios da comunidade',
+        'Perfil de membro',
+    ],
+    paid: [
+        'Acesso a todos os canais',
+        'Mensagens e notificações em tempo real',
+        'Participação em discussões exclusivas',
+        'Suporte prioritário',
+    ],
+}
 
 function PricingCard({ plan, community, isAuthenticated, hasFreePlan, recommended }) {
     const cta = () => {
@@ -70,11 +79,17 @@ function PricingCard({ plan, community, isAuthenticated, hasFreePlan, recommende
                 <hr className="border-gray-200 dark:border-[#1e1f22]" />
 
                 <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-2.5">
-                    {(plan.is_free ? planFeatures.slice(0, 1) : planFeatures).map((f, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                            <Check className="w-4 h-4 text-emerald-500" /> {f}
-                        </li>
-                    ))}
+                    {plan.is_free
+                        ? planFeatures.free.slice(0, 1).map((f, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-emerald-500" /> {f}
+                            </li>
+                        ))
+                        : planFeatures.paid.map((f, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-emerald-500" /> {f}
+                            </li>
+                        ))}
                 </ul>
 
                 {'href' in btn ? (
@@ -116,9 +131,125 @@ function FeatureCard({ icon: Icon, title, desc }) {
     )
 }
 
+function PlansView({ plans, community, isAuthenticated, hasFreePlan, onBack }) {
+    const recommendedIndex = plans.findIndex(p => !p.is_free)
+    const isRecommended = (i) => plans.length > 1 && i === recommendedIndex
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar para Sobre
+                </button>
+            </div>
+
+            <div className="text-center max-w-xl mx-auto mb-6 space-y-2">
+                <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    Escolhe o teu plano
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                    {community.description || 'Seleciona o plano que melhor se adequa a ti e começa já a participar.'}
+                </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto items-stretch">
+                {plans.map((plan, i) => {
+                    const recommended = isRecommended(i)
+                    const features = plan.is_free ? planFeatures.free : planFeatures.paid
+
+                    return (
+                        <div
+                            key={plan.id}
+                            style={{ animationDelay: `${i * 0.08}s` }}
+                            className={`
+                                animate-popIn opacity-0 relative rounded-2xl p-6 flex flex-col transition-all
+                                ${recommended
+                                    ? 'bg-white dark:bg-[#2b2d31] border-2 border-violet-500/40 shadow-xl'
+                                    : 'bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] hover:border-gray-300 dark:hover:border-white/10'
+                                }
+                            `}
+                        >
+                            {plan.is_free && (
+                                <span className="self-start inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-full mb-4">
+                                    <Check className="w-2.5 h-2.5" />
+                                    Grátis
+                                </span>
+                            )}
+                            {recommended && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white font-bold text-[10px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                                    <span className="flex items-center gap-1">
+                                        <Sparkles className="w-2.5 h-2.5" />
+                                        Mais Popular
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="mb-4">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{plan.name}</h3>
+                                {plan.description && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{plan.description}</p>
+                                )}
+                            </div>
+
+                            <div className="mb-5">
+                                {plan.is_free ? (
+                                    <span className="text-3xl font-extrabold text-gray-900 dark:text-white">Grátis</span>
+                                ) : (
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-3xl font-extrabold text-gray-900 dark:text-white">{plan.price}€</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">/mês</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <ul className="space-y-2.5 mb-6 flex-1">
+                                {features.map((feat, fi) => (
+                                    <li key={fi} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
+                                        <Check className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                        {feat}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button
+                                onClick={() => plan.is_free
+                                    ? router.post(route('communities.join.store', community.slug))
+                                    : router.post(route('communities.join.store', community.slug), { plan_id: plan.id })
+                                }
+                                className={`
+                                    w-full py-3 rounded-xl text-sm font-bold transition-all cursor-pointer
+                                    ${recommended
+                                        ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                                        : 'bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white'
+                                    }
+                                `}
+                            >
+                                {plan.is_free ? 'Entrar Grátis' : (
+                                    <span className="flex items-center justify-center gap-1.5">
+                                        Subscrever <ArrowRight className="w-3.5 h-3.5" />
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    )
+                })}
+            </div>
+
+            <p className="text-center text-[10px] text-gray-400 dark:text-gray-500">
+                Pagamentos processados via Stripe. Cancela quando quiseres.
+            </p>
+        </div>
+    )
+}
+
 export default function Show({ community }) {
     const { auth } = usePage().props
     const isAuthenticated = !!auth.user
+    const [view, setView] = useState('main')
 
     const plans = community.plans ?? []
     const hasFreePlan = plans.some(p => p.is_free)
@@ -156,52 +287,63 @@ export default function Show({ community }) {
                             </div>
                             {plans.length > 0 && (
                                 <div className="mb-2">
-                                    <Link
-                                        href={route('communities.join', community.slug)}
-                                        className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-violet-600/20"
+                                    <button
+                                        onClick={() => setView(view === 'main' ? 'plans' : 'main')}
+                                        className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg shadow-violet-600/20 cursor-pointer"
                                     >
-                                        Ver Opções de Planos <ChevronDown className="w-3 h-3" />
-                                    </Link>
+                                        {view === 'main' ? (
+                                            <>Ver Opções de Planos <ChevronDown className="w-3 h-3" /></>
+                                        ) : (
+                                            <><ArrowLeft className="w-3 h-3" /> Voltar para Sobre</>
+                                        )}
+                                    </button>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Content Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Left Column: About + Features */}
-                        <div className="md:col-span-2 space-y-6">
-                            {/* About */}
-                            <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
-                                <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">Sobre a Comunidade</h2>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                    {community.description || 'Sem descrição disponível.'}
-                                </p>
-                            </div>
+                    <div key={view} className="animate-fadeIn">
+                        {view === 'main' ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="md:col-span-2 space-y-6">
+                                    <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
+                                        <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">Sobre a Comunidade</h2>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                            {community.description || 'Sem descrição disponível.'}
+                                        </p>
+                                    </div>
 
-                            {/* Features */}
-                            <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
-                                <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">O que vais ter acesso imediato</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {features.map((f, i) => (
-                                        <FeatureCard key={i} icon={f.icon} title={f.title} desc={f.desc} />
-                                    ))}
+                                    <div className="bg-white dark:bg-[#2b2d31] border border-gray-200 dark:border-[#1e1f22] rounded-2xl p-6 space-y-4 shadow-sm">
+                                        <h2 className="font-bold text-lg text-gray-900 dark:text-white border-b border-gray-200 dark:border-[#1e1f22] pb-2">O que vais ter acesso imediato</h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {features.map((f, i) => (
+                                                <FeatureCard key={i} icon={f.icon} title={f.title} desc={f.desc} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {recommendedPlan && (
+                                        <PricingCard
+                                            plan={recommendedPlan}
+                                            community={community}
+                                            isAuthenticated={isAuthenticated}
+                                            hasFreePlan={hasFreePlan}
+                                            recommended
+                                        />
+                                    )}
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Right Column: Pricing Card */}
-                        <div className="space-y-6">
-                            {recommendedPlan && (
-                                <PricingCard
-                                    plan={recommendedPlan}
-                                    community={community}
-                                    isAuthenticated={isAuthenticated}
-                                    hasFreePlan={hasFreePlan}
-                                    recommended
-                                />
-                            )}
-                        </div>
+                        ) : (
+                            <PlansView
+                                plans={plans}
+                                community={community}
+                                isAuthenticated={isAuthenticated}
+                                hasFreePlan={hasFreePlan}
+                                onBack={() => setView('main')}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

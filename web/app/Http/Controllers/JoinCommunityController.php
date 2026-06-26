@@ -7,6 +7,7 @@ use App\Models\Membership;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class JoinCommunityController extends Controller
 {
@@ -48,13 +49,45 @@ class JoinCommunityController extends Controller
         $plan = Plan::findOrFail($request->plan_id);
 
         if ($plan->price > 0) {
-            // TODO: process payment
+            \Stripe\Stripe::setApiKey(config('stripe.secret'));
+
+            $customer = $this->getOrCreateStripeCustomer($request->user());
+
+            $session = \Stripe\Checkout\Session::create([
+                'customer' => $customer->id,
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'product_data' => [
+                            'name' => $plan->name,
+                            'description' => $plan->description,
+                        ],
+                        'recurring' => ['interval' => 'month'],
+                        'unit_amount' => (int) ($plan->price * 100),
+                    ],
+                    'quantity' => 1,
+                ]],
+                'mode' => 'subscription',
+                'metadata' => [
+                    'community_id' => $community->id,
+                    'user_id' => $request->user()->id,
+                    'plan_id' => $plan->id,
+                ],
+                'success_url' => route('communities.payment.success', $community->slug) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('communities.join', $community->slug),
+            ]);
+
             Subscription::create([
                 'community_id' => $community->id,
                 'user_id' => $request->user()->id,
+                'plan_id' => $plan->id,
                 'plan_type' => $plan->name,
-                'starts_at' => now(),
+                'status' => 'pending',
+                'stripe_session_id' => $session->id,
+                'starts_at' => null,
             ]);
+
+            return Inertia::location($session->url);
         }
 
         Membership::create([
@@ -64,5 +97,28 @@ class JoinCommunityController extends Controller
         ]);
 
         return $this->redirectToChannel($community);
+    }
+
+    private function getOrCreateStripeCustomer($user): \Stripe\Customer
+    {
+        \Stripe\Stripe::setApiKey(config('stripe.secret'));
+
+        if ($user->stripe_customer_id) {
+            try {
+                return \Stripe\Customer::retrieve($user->stripe_customer_id);
+            } catch (\Stripe\Exception\InvalidRequestException) {
+                // customer was deleted on Stripe side, create a new one
+            }
+        }
+
+        $customer = \Stripe\Customer::create([
+            'email' => $user->email,
+            'name' => $user->name,
+            'metadata' => ['user_id' => $user->id],
+        ]);
+
+        $user->update(['stripe_customer_id' => $customer->id]);
+
+        return $customer;
     }
 }
