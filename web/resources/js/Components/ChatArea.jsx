@@ -41,6 +41,12 @@ export default function ChatArea({ channel, messages: initialMessages, user, com
                     return [...prev, data]
                 })
             })
+            channel.listen('.message.updated', (data) => {
+                setMessages(prev => prev.map(m => m.id === data.id ? { ...m, content: data.content } : m))
+            })
+            channel.listen('.message.deleted', (data) => {
+                setMessages(prev => prev.filter(m => m.id !== data.id))
+            })
         })
 
         return () => {
