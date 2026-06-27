@@ -6,6 +6,7 @@ import {
     Layers, Quote
 } from 'lucide-react';
 import GhotaNavbar from '@/Components/GhotaNavbar';
+import GhotaFooter from '@/Components/GhotaFooter';
 
 export default function Welcome({ auth, communities }) {
     return (
@@ -221,6 +222,7 @@ export default function Welcome({ auth, communities }) {
                 </section>
 
                 {/* Social proof */}
+                {/*
                 <section className="relative py-16 md:py-20">
                     <div className="max-w-7xl mx-auto px-5 text-center">
                         <p className="text-sm text-white/40 font-medium tracking-wider uppercase mb-10">
@@ -238,6 +240,7 @@ export default function Welcome({ auth, communities }) {
                         </div>
                     </div>
                 </section>
+                */}
 
                 {/* Featured Communities */}
                 {communities.length > 0 && (
@@ -282,22 +285,7 @@ export default function Welcome({ auth, communities }) {
                 </section>
             </main>
 
-            {/* Footer */}
-            <footer className="relative border-t border-white/5 py-8">
-                <div className="max-w-7xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-sm text-white/30">
-                        <div className="w-5 h-5 rounded bg-gradient-to-br from-[#6C3BFF] to-[#B46CFF] flex items-center justify-center text-[8px] font-bold">
-                            G
-                        </div>
-                        Ghota &copy; {new Date().getFullYear()}
-                    </div>
-                    <div className="flex items-center gap-6 text-xs text-white/30">
-                        <a href="#" className="hover:text-white/50 transition-colors">Privacidade</a>
-                        <a href="#" className="hover:text-white/50 transition-colors">Termos</a>
-                        <a href="#" className="hover:text-white/50 transition-colors">Contacto</a>
-                    </div>
-                </div>
-            </footer>
+            <GhotaFooter isLanding />
         </div>
     );
 }

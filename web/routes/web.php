@@ -6,6 +6,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\JoinCommunityController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,6 +28,33 @@ Route::get('/', function () {
 });
 
 
+
+Route::get('/privacidade', function () {
+    return Inertia::render('Public/Privacy');
+})->name('privacy');
+
+Route::get('/termos', function () {
+    return Inertia::render('Public/Terms');
+})->name('terms');
+
+Route::get('/recursos', function () {
+    return Inertia::render('Public/Features');
+})->name('features');
+
+Route::get('/precos', function () {
+    return Inertia::render('Public/Pricing');
+})->name('pricing');
+
+Route::get('/precos/personalizar', function () {
+    return Inertia::render('Public/Customize');
+})->name('pricing.customize');
+
+Route::get('/ajuda', function () {
+    return Inertia::render('Public/Help');
+})->name('help');
+
+Route::get('/contacto', [ContactController::class, 'show'])->name('contact');
+Route::post('/contacto', [ContactController::class, 'send'])->name('contact.send');
 
 Route::get('/dashboard', function () {
     $user = request()->user();

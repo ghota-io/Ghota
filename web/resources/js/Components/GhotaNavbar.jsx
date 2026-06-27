@@ -4,11 +4,11 @@ import { ChevronsUpDown, Bell, Plus, Compass, Sun, Moon, User, Menu, X } from 'l
 import { getPersistedTheme, setPersistedTheme } from '@/theme'
 import GhotaLogo from '@/Components/GhotaLogo'
 
-export default function GhotaNavbar({ community = null, className = '' }) {
+export default function GhotaNavbar({ community = null, className = '', landingStyle = false }) {
     const { auth, myCommunities, url } = usePage().props
     const page = usePage()
     const user = auth?.user ?? null
-    const isLanding = page.url === '/'
+    const isLanding = landingStyle || page.url === '/'
     const [open, setOpen] = useState(false)
     const dropdownRef = useRef(null)
     const [userOpen, setUserOpen] = useState(false)
@@ -132,15 +132,18 @@ export default function GhotaNavbar({ community = null, className = '' }) {
                 {/* Desktop nav links — only on landing page */}
                 {isLanding && (
                     <nav className="hidden md:flex items-center gap-1">
-                        {['Recursos', 'Comunidades', 'Preços', 'Blog', 'Ajuda'].map(item => (
-                            <a
-                                key={item}
-                                href="#"
-                                className="px-4 py-2 text-sm text-white/60 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
-                            >
-                                {item}
-                            </a>
-                        ))}
+                        <Link href={route('features')} className="px-4 py-2 text-sm text-white/60 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200">
+                            Recursos
+                        </Link>
+                        <Link href={route('communities.index')} className="px-4 py-2 text-sm text-white/60 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200">
+                            Comunidades
+                        </Link>
+                        <Link href={route('pricing')} className="px-4 py-2 text-sm text-white/60 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200">
+                            Preços
+                        </Link>
+                        <Link href={route('help')} className="px-4 py-2 text-sm text-white/60 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200">
+                            Ajuda
+                        </Link>
                     </nav>
                 )}
 
@@ -244,16 +247,40 @@ export default function GhotaNavbar({ community = null, className = '' }) {
             {mobileMenuOpen && (
                 <div className={`md:hidden backdrop-blur-xl border-b ${isLanding ? 'bg-[#12002E]/95 border-white/10' : 'bg-white/95 dark:bg-[#1e1f22]/95 border-gray-200 dark:border-[#1e1f22]'}`}>
                     <div className="px-5 py-5 space-y-1">
-                        {isLanding && ['Recursos', 'Comunidades', 'Preços', 'Blog', 'Ajuda'].map(item => (
-                            <a
-                                key={item}
-                                href="#"
+                        <Link
+                            href={route('features')}
+                            className="block text-sm text-white/60 hover:text-white py-2.5 px-3 rounded-lg hover:bg-white/5 transition"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Recursos
+                        </Link>
+                        {isLanding && (
+                            <Link
+                                href={route('communities.index')}
                                 className="block text-sm text-white/60 hover:text-white py-2.5 px-3 rounded-lg hover:bg-white/5 transition"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                {item}
-                            </a>
-                        ))}
+                                Comunidades
+                            </Link>
+                        )}
+                        {isLanding && (
+                            <>
+                            <Link
+                                href={route('pricing')}
+                                className="block text-sm text-white/60 hover:text-white py-2.5 px-3 rounded-lg hover:bg-white/5 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Preços
+                            </Link>
+                            <Link
+                                href={route('help')}
+                                className="block text-sm text-white/60 hover:text-white py-2.5 px-3 rounded-lg hover:bg-white/5 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Ajuda
+                            </Link>
+                            </>
+                        )}
                         <div className={`pt-3 border-t space-y-2 ${isLanding ? 'border-white/5' : 'border-gray-200 dark:border-[#1e1f22]'}`}>
                             {user ? (
                                 <>
