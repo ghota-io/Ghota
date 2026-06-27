@@ -11,22 +11,22 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'community_id' => 'required|exists:communities,id',
+            "name" => "required|string|max:255",
+            "community_id" => "required|exists:communities,id",
         ]);
 
-        $community = Community::findOrFail($validated['community_id']);
+        $community = Community::findOrFail($validated["community_id"]);
 
         if ($request->user()->id !== $community->owner_id) {
             abort(403);
         }
 
-        $maxOrder = Category::where('community_id', $community->id)->max('order');
+        $maxOrder = Category::where("community_id", $community->id)->max("order");
 
         Category::create([
-            'community_id' => $community->id,
-            'name' => $validated['name'],
-            'order' => ($maxOrder ?? 0) + 1,
+            "community_id" => $community->id,
+            "name" => $validated["name"],
+            "order" => ($maxOrder ?? 0) + 1,
         ]);
 
         return redirect()->back();
@@ -39,7 +39,7 @@ class CategoryController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            "name" => "required|string|max:255",
         ]);
 
         $category->update($validated);
@@ -53,8 +53,9 @@ class CategoryController extends Controller
             abort(403);
         }
 
+        $community = $category->community;
         $category->delete();
 
-        return redirect()->back();
+        return redirect()->route("communities.app", [$community->slug, "canais"]);
     }
 }

@@ -90,44 +90,15 @@ function ChannelSidebar({ community, currentChannel, isOwner }) {
         })
     }
 
-    const getAllChannels = () => {
-        const result = []
-        for (const cat of categories) {
-            for (const ch of (cat.channels || [])) {
-                result.push(ch)
-            }
-        }
-        result.push(...uncategorizedChannels)
-        return result
-    }
-
     const deleteChannel = (channel) => {
         if (!confirm(`Tens a certeza que queres eliminar o canal #${channel.name}?`)) return
-        const isCurrent = channel.id === currentChannel?.id
-        const fallback = isCurrent ? getAllChannels().filter(ch => ch.id !== channel.id)[0] : null
-        router.delete(route('channels.destroy', channel.id), {
-            preserveState: true,
-            onSuccess: () => {
-                if (isCurrent && fallback) {
-                    navigateToChannel(fallback)
-                }
-            }
-        })
+        router.delete(route('channels.destroy', channel.id), { preserveState: true })
         setContextMenu(null)
     }
 
     const deleteCategory = (category) => {
         if (!confirm(`Tens a certeza que queres eliminar a categoria "${category.name}"?`)) return
-        const isCurrentInCategory = currentChannel && currentChannel.category_id === category.id
-        const fallback = isCurrentInCategory ? getAllChannels().filter(ch => ch.category_id !== category.id)[0] : null
-        router.delete(route('categories.destroy', category.id), {
-            preserveState: true,
-            onSuccess: () => {
-                if (isCurrentInCategory && fallback) {
-                    navigateToChannel(fallback)
-                }
-            }
-        })
+        router.delete(route('categories.destroy', category.id), { preserveState: true })
         setContextMenu(null)
     }
 
@@ -365,7 +336,6 @@ function ChannelSidebar({ community, currentChannel, isOwner }) {
 function ManageSidebar({ community, activeTab, onTabChange }) {
     const tabs = [
         { key: 'settings', label: 'Definições' },
-        { key: 'plans', label: 'Planos' },
         { key: 'channels', label: 'Canais' },
         { key: 'members', label: 'Membros' },
         { key: 'danger', label: 'Zona de Perigo' },
@@ -431,25 +401,30 @@ function MembersSidebar({ community, activeSub, onSubChange }) {
     )
 }
 
-function PlansSidebar({ community }) {
-    const plans = community.plans ?? []
+function PlansSidebar({ community, activeSub, onSubChange }) {
+    const items = [
+        { key: 'gerir', label: 'Gerir Planos' },
+        { key: 'alterar', label: 'Alterar Plano' },
+        { key: 'cancelar', label: 'Cancelar Plano' },
+    ]
     return (
         <aside className="w-60 shrink-0 bg-white dark:bg-[#232428] flex flex-col overflow-hidden border-r border-gray-200 dark:border-[#1e1f22]">
             <div className="h-12 flex items-center px-4 border-b border-gray-200 dark:border-[#1e1f22] shrink-0">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">Planos</span>
             </div>
-            <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-2">
-                {plans.map((plan) => (
-                    <div key={plan.id} className="bg-gray-50 dark:bg-[#1e1f22] rounded-xl px-4 py-3">
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-white">{plan.name}</h4>
-                        <p className="text-lg font-extrabold text-violet-600 dark:text-violet-400 mt-1">
-                            {plan.is_free ? 'Grátis' : `${plan.price}€`}
-                            {!plan.is_free && <span className="text-xs text-gray-400 dark:text-gray-500 font-normal"> /mês</span>}
-                        </p>
-                        {plan.description && (
-                            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{plan.description}</p>
-                        )}
-                    </div>
+            <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+                {items.map((item) => (
+                    <button
+                        key={item.key}
+                        onClick={() => onSubChange(item.key)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            activeSub === item.key
+                                ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-200'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#35373c]'
+                        }`}
+                    >
+                        {item.label}
+                    </button>
                 ))}
             </nav>
         </aside>
@@ -472,7 +447,6 @@ function ManageContent({ community, initialTab, isOwner }) {
             <ManageSidebar community={community} activeTab={activeTab} onTabChange={updateUrlTab} />
             <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#1e1f22]">
                 {activeTab === 'settings' && <SettingsSection community={community} />}
-                {activeTab === 'plans' && <PlansSection community={community} />}
                 {activeTab === 'channels' && <ChannelsSection community={community} />}
                 {activeTab === 'members' && <MembersSection community={community} isOwner={isOwner} />}
                 {activeTab === 'danger' && <DangerSection community={community} />}
@@ -532,7 +506,7 @@ function SettingsSection({ community }) {
     )
 }
 
-function PlansSection({ community }) {
+function PlanManageContent({ community, isOwner }) {
     const [plans, setPlans] = useState(
         community.plans?.length
             ? community.plans.map(p => ({ id: p.id, name: p.name, price: String(p.price), description: p.description ?? '', is_free: p.is_free }))
@@ -594,6 +568,76 @@ function PlansSection({ community }) {
                 </form>
             </div>
         </div>
+    )
+}
+
+function PlanChangeContent({ community }) {
+    const plans = community.plans ?? []
+    return (
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#1e1f22]">
+            <div className="max-w-2xl mx-auto p-6">
+                <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Alterar Plano</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Escolhe o plano que melhor se adequa às tuas necessidades.</p>
+                    <div className="space-y-4">
+                        {plans.map((plan) => (
+                            <div key={plan.id} className="bg-gray-50 dark:bg-[#1e1f22] border border-gray-200 dark:border-[#1e1f22] rounded-xl p-5 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-base font-bold text-gray-900 dark:text-white">{plan.name}</h3>
+                                    {plan.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{plan.description}</p>}
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xl font-extrabold text-violet-600 dark:text-violet-400">
+                                        {plan.is_free ? 'Grátis' : `${plan.price}€`}
+                                        {!plan.is_free && <span className="text-xs text-gray-400 dark:text-gray-500 font-normal"> /mês</span>}
+                                    </p>
+                                    <button className="mt-2 px-4 py-1.5 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition">
+                                        {plan.is_free ? 'Grátis' : 'Selecionar'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </main>
+    )
+}
+
+function PlanCancelContent({ community }) {
+    const [confirmed, setConfirmed] = useState(false)
+    const plans = community.plans ?? []
+    const activePlan = plans.find(p => !p.is_free) ?? plans[0]
+    return (
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#1e1f22]">
+            <div className="max-w-2xl mx-auto p-6">
+                <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Cancelar Plano</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        Tem a certeza que pretende cancelar o seu plano atual?
+                    </p>
+                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 mb-6">
+                        <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                            {activePlan ? `Plano atual: ${activePlan.name}${activePlan.is_free ? '' : ` — ${activePlan.price}€/mês`}` : 'Nenhum plano ativo'}
+                        </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                            Se cancelar, o acesso será suspenso no final do período de faturação.
+                        </p>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer mb-6">
+                        <input type="checkbox" checked={confirmed} onChange={() => setConfirmed(!confirmed)}
+                            className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Sim, pretendo cancelar o meu plano
+                        </span>
+                    </label>
+                    <button disabled={!confirmed}
+                        className="px-6 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                        Cancelar Plano
+                    </button>
+                </div>
+            </div>
+        </main>
     )
 }
 
@@ -814,13 +858,41 @@ function MembersTable({ members, isOwner, community, roles }) {
                                         </td>
                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400">{m.user?.email}</td>
                                         <td className="px-6 py-3">
-                                            <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
-                                                {m.role === 'owner' ? (
-                                                    <><Crown className="w-3.5 h-3.5 text-amber-500" /> Owner</>
-                                                ) : (
-                                                    m.community_role_name
-                                                )}
-                                            </span>
+                                            {isOwner && m.role !== 'owner' ? (
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setOpenDropdown(openDropdown === `role-${m.id}` ? null : `role-${m.id}`)}
+                                                        className="flex items-center gap-1.5 text-sm bg-gray-50 dark:bg-[#1e1f22] text-gray-700 dark:text-gray-200 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-[#1e1f22] hover:border-gray-300 dark:hover:border-gray-600 transition cursor-pointer"
+                                                    >
+                                                        {m.community_role_name}
+                                                        <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400" />
+                                                    </button>
+                                                    {openDropdown === `role-${m.id}` && (
+                                                        <div className="absolute left-0 top-full mt-1 z-[100] w-48 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1">
+                                                            {availRoles.map((r) => (
+                                                                <button key={r.id}
+                                                                    onClick={() => { changeRole(m.user, r.id); setOpenDropdown(null) }}
+                                                                    className={`w-full text-left px-3 py-1.5 text-sm transition ${
+                                                                        m.community_role_id === r.id
+                                                                            ? 'text-violet-600 dark:text-violet-400 font-semibold bg-violet-50 dark:bg-violet-500/10'
+                                                                            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c]'
+                                                                    }`}
+                                                                >
+                                                                    {r.name} {r.is_default && <span className="text-[10px] text-gray-400 ml-1">(padrão)</span>}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                    {m.role === 'owner' ? (
+                                                        <><Crown className="w-3.5 h-3.5 text-amber-500" /> Owner</>
+                                                    ) : (
+                                                        m.community_role_name
+                                                    )}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{timeAgo(m.joined_at)}</td>
                                         {isOwner && (
@@ -1055,14 +1127,14 @@ function RolesContent({ community, isOwner }) {
     )
 }
 
-export default function AppLayout({ community, section, channel, messages, initialTab, membersList, membersSub }) {
+export default function AppLayout({ community, section, channel, messages, initialTab, membersList, membersSub, planosSub }) {
     const { auth } = usePage().props
     const user = auth?.user ?? null
     const isOwner = user?.id === community.owner_id
 
     return (
         <>
-            <Head title={`${community.name} — ${section === 'canais' ? channel?.name : section === 'gerir' ? 'Gerir' : section === 'membros' ? 'Membros' : section === 'planos' ? 'Planos' : 'App'}`} />
+            <Head title={`${community.name} — ${section === 'canais' ? channel?.name : section === 'gerir' ? 'Gerir' : section === 'membros' ? 'Membros' : section === 'planos' ? ({'gerir': 'Gerir Planos', 'alterar': 'Alterar Plano', 'cancelar': 'Cancelar Plano'}[planosSub] ?? 'Planos') : 'App'}`} />
 
             <div className="h-screen flex flex-col bg-gray-50 dark:bg-[#1e1f22] overflow-hidden">
                 <div className="flex flex-1 overflow-hidden">
@@ -1076,7 +1148,11 @@ export default function AppLayout({ community, section, channel, messages, initi
                             router.get(route('communities.app', [community.slug, 'membros', sub]), {}, { preserveState: true, preserveScroll: false })
                         }} />
                     )}
-                    {section === 'planos' && <PlansSidebar community={community} />}
+                    {section === 'planos' && (
+                        <PlansSidebar community={community} activeSub={planosSub ?? 'gerir'} onSubChange={(sub) => {
+                            router.get(route('communities.app', [community.slug, 'planos', sub]), {}, { preserveState: true, preserveScroll: false })
+                        }} />
+                    )}
 
                     {section === 'canais' && channel && (
                         <main className="flex-1 flex flex-col min-w-0">
@@ -1092,10 +1168,14 @@ export default function AppLayout({ community, section, channel, messages, initi
                     {section === 'membros' && membersSub === 'cargos' && (
                         <RolesContent community={community} isOwner={isOwner} />
                     )}
-                    {section === 'planos' && (
-                        <main className="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm bg-gray-50 dark:bg-[#1e1f22]">
-                            Planos — em breve
-                        </main>
+                    {section === 'planos' && planosSub === 'gerir' && (
+                        <PlanManageContent community={community} isOwner={isOwner} />
+                    )}
+                    {section === 'planos' && planosSub === 'alterar' && (
+                        <PlanChangeContent community={community} />
+                    )}
+                    {section === 'planos' && planosSub === 'cancelar' && (
+                        <PlanCancelContent community={community} />
                     )}
                 </div>
             </div>

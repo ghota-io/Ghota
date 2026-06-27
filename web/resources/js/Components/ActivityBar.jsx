@@ -7,7 +7,7 @@ export default function ActivityBar({ community, user, section }) {
     const { auth } = usePage().props
     const isOwner = user?.id === community.owner_id
     const isAdmin = isOwner
-    const hasMultiplePlans = (community.plans?.length ?? 0) > 1
+    const hasPlans = (community.plans?.length ?? 0) > 0
     const [userOpen, setUserOpen] = useState(false)
     const userDropdownRef = useRef(null)
 
@@ -42,7 +42,7 @@ export default function ActivityBar({ community, user, section }) {
         { icon: Hash, label: 'Canais', section: 'canais', show: true },
         { icon: Settings, label: 'Gerir', section: 'gerir', show: isAdmin },
         { icon: Users, label: 'Membros', section: 'membros', show: true },
-        { icon: CreditCard, label: 'Planos', section: 'planos', show: hasMultiplePlans },
+        { icon: CreditCard, label: 'Planos', section: 'planos', show: hasPlans },
     ]
 
     const navigateToSection = (sec) => {

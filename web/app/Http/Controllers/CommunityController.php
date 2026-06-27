@@ -243,6 +243,9 @@ class CommunityController extends Controller
 
         if ($section === 'canais') {
             $channelName = $sub ?? $community->channels()->orderBy('order')->orderBy('id')->value('name');
+            if (!$channelName) {
+                return redirect()->route('communities.app', [$community->slug, 'gerir']);
+            }
             $channel = $community->channels()->where('name', $channelName)->firstOrFail();
 
             $messages = $channel->messages()
@@ -288,6 +291,8 @@ class CommunityController extends Controller
             $community->getDefaultRole();
             $community->load('roles');
             $data['membersSub'] = $sub ?? 'lista';
+        } elseif ($section === 'planos') {
+            $data['planosSub'] = $sub ?? 'gerir';
         }
 
         return Inertia::render('Communities/AppLayout', $data);

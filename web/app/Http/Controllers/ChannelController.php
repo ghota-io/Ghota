@@ -95,7 +95,6 @@ class ChannelController extends Controller
         }
 
         $community = $channel->community;
-
         $channel->delete();
 
         return redirect()->route('communities.app', [$community->slug, 'canais']);
