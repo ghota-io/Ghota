@@ -100,65 +100,68 @@ export default function Pricing() {
 
             <main className="relative pt-32 pb-20">
                 <div className="max-w-5xl mx-auto px-5">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-extrabold tracking-tight mb-3">
-                            Preços para a tua{' '}
-                            <span className="bg-gradient-to-r from-[#6C3BFF] to-[#B46CFF] bg-clip-text text-transparent">
-                                comunidade
-                            </span>
-                        </h1>
-                        <p className="text-white/50 text-lg max-w-xl mx-auto">
-                            Escolhe o plano ideal para o teu projeto. Começa grátis e faz upgrade quando precisares.
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-4 gap-6 mb-16">
-                        {plans.map((plan, i) => (
-                            <div
-                                key={i}
-                                className="relative rounded-2xl p-6 border border-white/[0.06] bg-white/[0.03] hover:scale-105 hover:shadow-xl hover:shadow-[#6C3BFF]/20 hover:border-[#6C3BFF]/40 transition-all duration-300 flex flex-col"
-                            >
-
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C3BFF]/20 to-[#B46CFF]/20 border border-white/5 flex items-center justify-center mb-4">
-                                    {plan.custom ? <Sliders className="w-5 h-5 text-[#B46CFF]" /> : <Crown className="w-5 h-5 text-[#B46CFF]" />}
+                    <div className='h-svh'>
+                        <div className="text-center mb-12">
+                            <h1 className="text-4xl font-extrabold tracking-tight mb-3">
+                                Preços para a tua{' '}
+                                <span className="bg-gradient-to-r from-[#6C3BFF] to-[#B46CFF] bg-clip-text text-transparent">
+                                    comunidade
+                                </span>
+                            </h1>
+                            <p className="text-white/50 text-lg max-w-xl mx-auto">
+                                Escolhe o plano ideal para o teu projeto. Começa grátis e faz upgrade quando precisares.
+                            </p>
+                        </div>
+    
+                        <div className="grid md:grid-cols-4 gap-6 mb-16">
+                            {plans.map((plan, i) => (
+                                <div
+                                    key={i}
+                                    style={{ animationDelay: `${i * 0.08}s` }}
+                                    className="animate-popIn opacity-0 relative rounded-2xl p-6 border border-white/[0.06] bg-white/[0.03] hover:scale-105 hover:shadow-xl hover:shadow-[#6C3BFF]/20 hover:border-[#6C3BFF]/40 transition-all duration-300 flex flex-col"
+                                >
+    
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C3BFF]/20 to-[#B46CFF]/20 border border-white/5 flex items-center justify-center mb-4">
+                                        {plan.custom ? <Sliders className="w-5 h-5 text-[#B46CFF]" /> : <Crown className="w-5 h-5 text-[#B46CFF]" />}
+                                    </div>
+    
+                                    <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
+                                    <p className="text-sm text-white/50 mb-4">{plan.desc}</p>
+    
+                                    <div className="flex items-baseline gap-0.5 mb-6">
+                                        <span className={`${plan.custom ? 'text-lg font-bold' : 'text-3xl font-extrabold'}`}>{plan.price}</span>
+                                        {plan.period && <span className="text-sm text-white/40">{plan.period}</span>}
+                                    </div>
+    
+                                    <ul className="space-y-2.5 mb-8 flex-1">
+                                        {plan.features.map((f, j) => (
+                                            <li key={j} className="flex items-start gap-2 text-sm text-white/70">
+                                                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                                {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+    
+                                    {plan.custom ? (
+                                        <Link
+                                            href={route('pricing.customize')}
+                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold border border-white/20 text-white/80 hover:bg-white/5 transition-all mt-auto"
+                                        >
+                                            {plan.cta}
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    ) : (
+                                        <a
+                                            href={route('register')}
+                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold border border-white/20 text-white/80 hover:bg-white/5 transition-all mt-auto"
+                                        >
+                                            {plan.cta}
+                                            <ArrowRight className="w-4 h-4" />
+                                        </a>
+                                    )}
                                 </div>
-
-                                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
-                                <p className="text-sm text-white/50 mb-4">{plan.desc}</p>
-
-                                <div className="flex items-baseline gap-0.5 mb-6">
-                                    <span className={`${plan.custom ? 'text-lg font-bold' : 'text-3xl font-extrabold'}`}>{plan.price}</span>
-                                    {plan.period && <span className="text-sm text-white/40">{plan.period}</span>}
-                                </div>
-
-                                <ul className="space-y-2.5 mb-8 flex-1">
-                                    {plan.features.map((f, j) => (
-                                        <li key={j} className="flex items-start gap-2 text-sm text-white/70">
-                                            <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                                            {f}
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                {plan.custom ? (
-                                    <Link
-                                        href={route('pricing.customize')}
-                                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold border border-white/20 text-white/80 hover:bg-white/5 transition-all mt-auto"
-                                    >
-                                        {plan.cta}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                ) : (
-                                    <a
-                                        href={route('register')}
-                                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold border border-white/20 text-white/80 hover:bg-white/5 transition-all mt-auto"
-                                    >
-                                        {plan.cta}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </a>
-                                )}
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
 
                     {/* FAQ */}

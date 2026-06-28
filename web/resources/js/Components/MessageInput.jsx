@@ -10,6 +10,12 @@ export default function MessageInput({ channel, onSend }) {
         inputRef.current?.focus()
     }, [channel.id])
 
+    useEffect(() => {
+        if (!sending) {
+            inputRef.current?.focus()
+        }
+    }, [sending])
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         const text = content.trim()
@@ -21,7 +27,6 @@ export default function MessageInput({ channel, onSend }) {
             setContent('')
         } finally {
             setSending(false)
-            inputRef.current?.focus()
         }
     }
 
