@@ -20,7 +20,7 @@ export default function Contact() {
     }
 
     return (
-        <div className="min-h-screen bg-[#12002E] text-white overflow-hidden">
+        <div className="min-h-screen bg-[#12002E] text-white overflow-hidden flex flex-col">
             <Head title="Contacto — Ghota" />
 
             <div className="fixed inset-0 pointer-events-none">
@@ -36,7 +36,7 @@ export default function Contact() {
 
             <GhotaNavbar landingStyle />
 
-            <main className="relative pt-32 pb-20">
+            <main className="relative pt-32 pb-20 flex-1">
                 <div className="max-w-3xl mx-auto px-5">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C3BFF]/20 to-[#B46CFF]/20 border border-white/5 flex items-center justify-center">
