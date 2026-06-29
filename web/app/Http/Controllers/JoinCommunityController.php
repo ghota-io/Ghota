@@ -52,6 +52,13 @@ class JoinCommunityController extends Controller
         $plan = Plan::findOrFail($request->plan_id);
 
         if ($plan->price > 0) {
+            $owner = $community->owner;
+
+            if (!$owner->stripe_connect_id || $owner->stripe_connect_status !== 'completed') {
+                return redirect()->route('communities.show', $community->slug)
+                    ->with('error', 'Esta comunidade ainda não configurou os pagamentos. Tenta novamente mais tarde.');
+            }
+
             \Stripe\Stripe::setApiKey(config('stripe.secret'));
 
             $customer = $this->getOrCreateStripeCustomer($request->user());
@@ -75,6 +82,11 @@ class JoinCommunityController extends Controller
                     'community_id' => $community->id,
                     'user_id' => $request->user()->id,
                     'plan_id' => $plan->id,
+                ],
+                'subscription_data' => [
+                    'transfer_data' => [
+                        'destination' => $owner->stripe_connect_id,
+                    ],
                 ],
                 'success_url' => route('communities.payment.success', $community->slug) . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('communities.join', $community->slug),

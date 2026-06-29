@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\ConnectController;
 use App\Http\Controllers\JoinCommunityController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
@@ -102,6 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/comunidades/{community}/pagamento-sucesso', [CommunityController::class, 'paymentSuccess'])->name('communities.payment.success');
 
     Route::get('/comunidades/{community}/gerir', [CommunityController::class, 'manage'])->name('communities.manage');
+    Route::get('/comunidades/{community}/connect', [ConnectController::class, 'onboarding'])->name('communities.connect.onboarding');
     Route::delete('/comunidades/{community}/membros/{user}', [CommunityController::class, 'removeMember'])->name('communities.members.remove');
     Route::put('/comunidades/{community}/membros/{user}/cargo', [CommunityController::class, 'changeMemberRole'])->name('communities.members.role');
 

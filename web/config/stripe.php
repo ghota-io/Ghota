@@ -6,4 +6,7 @@ return [
     'webhook' => [
         'secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
+    'connect' => [
+        'client_id' => env('STRIPE_CONNECT_CLIENT_ID'),
+    ],
 ];

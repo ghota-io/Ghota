@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Community;
-use App\Models\CommunityRole;
 use App\Models\Membership;
 use App\Models\Subscription;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Stripe\Event;
 
@@ -31,9 +29,13 @@ class StripeWebhookController extends Controller
             return response('Invalid signature', 400);
         }
 
-        if ($event->type === Event::CHECKOUT_SESSION_COMPLETED) {
-            $this->handleCheckoutCompleted($event->data->object);
-        }
+        match ($event->type) {
+            Event::CHECKOUT_SESSION_COMPLETED => $this->handleCheckoutCompleted($event->data->object),
+            Event::INVOICE_PAID => $this->handleInvoicePaid($event->data->object),
+            Event::CUSTOMER_SUBSCRIPTION_UPDATED => $this->handleSubscriptionUpdated($event->data->object),
+            Event::CUSTOMER_SUBSCRIPTION_DELETED => $this->handleSubscriptionDeleted($event->data->object),
+            default => null,
+        };
 
         return response('OK', 200);
     }
@@ -50,6 +52,7 @@ class StripeWebhookController extends Controller
         if ($subscription) {
             $subscription->update([
                 'status' => 'active',
+                'stripe_subscription_id' => $session->subscription,
                 'stripe_payment_intent' => $session->payment_intent,
                 'starts_at' => now(),
             ]);
@@ -62,6 +65,7 @@ class StripeWebhookController extends Controller
                 'plan_type' => $plan?->name ?? 'paid',
                 'status' => 'active',
                 'stripe_session_id' => $session->id,
+                'stripe_subscription_id' => $session->subscription,
                 'stripe_payment_intent' => $session->payment_intent,
                 'starts_at' => now(),
             ]);
@@ -77,5 +81,59 @@ class StripeWebhookController extends Controller
             'role' => 'member',
             'community_role_id' => $defaultRole?->id,
         ]);
+    }
+
+    private function handleInvoicePaid(\Stripe\Invoice $invoice): void
+    {
+        $subscriptionId = $invoice->subscription;
+        if (!$subscriptionId) return;
+
+        $subscription = Subscription::where('stripe_subscription_id', $subscriptionId)->first();
+        if (!$subscription) return;
+
+        $amountPaid = $invoice->amount_paid ?? 0;
+        $applicationFee = (int) round($amountPaid * 0.20);
+
+        if ($applicationFee > 0) {
+            try {
+                \Stripe\Invoice::update($invoice->id, [
+                    'application_fee_amount' => $applicationFee,
+                ]);
+            } catch (\Exception $e) {
+                logger()->error("Failed to set application fee on invoice {$invoice->id}: {$e->getMessage()}");
+            }
+        }
+
+        $subscription->update([
+            'status' => 'active',
+            'starts_at' => now(),
+        ]);
+    }
+
+    private function handleSubscriptionUpdated(\Stripe\Subscription $stripeSubscription): void
+    {
+        $subscription = Subscription::where('stripe_subscription_id', $stripeSubscription->id)->first();
+        if (!$subscription) return;
+
+        $statusMap = [
+            'active' => 'active',
+            'past_due' => 'past_due',
+            'canceled' => 'cancelled',
+            'unpaid' => 'unpaid',
+            'incomplete' => 'incomplete',
+            'incomplete_expired' => 'incomplete_expired',
+            'paused' => 'paused',
+            'trialing' => 'trialing',
+        ];
+
+        $newStatus = $statusMap[$stripeSubscription->status] ?? 'active';
+
+        $subscription->update(['status' => $newStatus]);
+    }
+
+    private function handleSubscriptionDeleted(\Stripe\Subscription $stripeSubscription): void
+    {
+        Subscription::where('stripe_subscription_id', $stripeSubscription->id)
+            ->update(['status' => 'cancelled', 'ends_at' => now()]);
     }
 }

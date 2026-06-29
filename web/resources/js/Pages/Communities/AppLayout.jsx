@@ -516,6 +516,10 @@ function PlanManageContent({ community, isOwner }) {
         name: community.name, description: community.description,
         is_visible: community.is_visible ?? true, is_private: community.is_private ?? false,
     })
+    const { auth } = usePage().props
+    const user = auth?.user ?? null
+    const connectCompleted = user?.stripe_connect_status === 'completed'
+    const hasPaidPlans = plans.some(p => !p.is_free && parseFloat(p.price) > 0)
     const addPlan = () => setPlans([...plans, { name: '', price: '0', description: '', is_free: plans.length === 0 }])
     const removePlan = (i) => { if (plans.length <= 1) return; setPlans(plans.filter((_, idx) => idx !== i)) }
     const updatePlan = (i, field, value) => {
@@ -531,6 +535,27 @@ function PlanManageContent({ community, isOwner }) {
     }
     return (
         <div className="max-w-2xl mx-auto p-6">
+            {isOwner && hasPaidPlans && !connectCompleted && (
+                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-5 mb-6">
+                    <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-1">Configuração de pagamentos necessária</h3>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
+                        Para receberes pagamentos dos membros, precisas de ligar a tua conta Stripe. Os membros só podem subscrever planos pagos após esta configuração.
+                    </p>
+                    <a href={route('communities.connect.onboarding', community.slug)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        Ligar conta Stripe
+                    </a>
+                </div>
+            )}
+            {isOwner && connectCompleted && (
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl px-5 py-3 mb-6 flex items-center gap-3">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                        Conta Stripe ligada com sucesso. Os membros já podem subscrever planos pagos.
+                    </p>
+                </div>
+            )}
             <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">
                 <div className="flex items-center justify-between mb-5">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">Planos / Preçário</h2>

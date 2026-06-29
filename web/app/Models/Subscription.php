@@ -14,6 +14,7 @@ class Subscription extends Model
         'plan_type',
         'status',
         'stripe_session_id',
+        'stripe_subscription_id',
         'stripe_payment_intent',
         'starts_at',
         'ends_at',

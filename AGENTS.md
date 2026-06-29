@@ -23,7 +23,7 @@ Instruções para agentes. Lê `.opencode/context/aplicacao.md` antes de qualque
 
 ## Stripe
 
-Stripe integrado com pagamentos via Checkout Sessions (modo subscription).
+Stripe integrado com pagamentos via Checkout Sessions (modo subscription) + Stripe Connect (80% owner / 20% plataforma).
 
 ### Setup
 
@@ -32,6 +32,7 @@ Stripe integrado com pagamentos via Checkout Sessions (modo subscription).
 STRIPE_KEY=pk_test_xxx
 STRIPE_SECRET=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_CONNECT_CLIENT_ID=ca_xxx
 
 # 2. Forward webhooks em dev (Stripe CLI)
 stripe listen --forward-to http://localhost:8080/stripe/webhook
@@ -40,10 +41,20 @@ stripe listen --forward-to http://localhost:8080/stripe/webhook
 ### Fluxo de pagamento
 
 1. User seleciona plano pago → POST `/comunidades/{community}/entrar`
-2. `JoinCommunityController` cria Checkout Session, redireciona para Stripe via `Inertia::location()`
-3. Stripe trata pagamento, envia webhook `checkout.session.completed` para `/stripe/webhook`
-4. `StripeWebhookController` verifica assinatura, cria `Subscription` (status `active`) e `Membership`
-5. User é redirecionado para `/comunidades/{community}/pagamento-sucesso` que faz polling até membership existir
+2. `JoinCommunityController` verifica se owner tem `stripe_connect_status=completed` (senão, redirect com erro)
+3. Cria Checkout Session com `subscription_data.transfer_data.destination` = owner's `stripe_connect_id`
+4. Stripe trata pagamento, envia webhook `checkout.session.completed` para `/stripe/webhook`
+5. `StripeWebhookController` verifica assinatura, guarda `stripe_subscription_id`, cria `Subscription` (status `active`) e `Membership`
+6. Webhook `invoice.paid` define `application_fee_amount` = 20% do `amount_paid` na invoice
+7. Webhooks `customer.subscription.updated`/`.deleted` sincronizam estado local
+8. User é redirecionado para `/comunidades/{community}/pagamento-sucesso` que faz polling até membership existir
+
+### Connect onboarding
+
+- Owner liga conta Stripe Express via Gerir > Planos > "Ligar conta Stripe"
+- `ConnectController@onboarding` cria Account Express + Account Link, redireciona para Stripe
+- Após onboarding, owner volta para Planos > Gerir com status `completed`
+- Se owner não tem Connect configurado e há planos pagos, membros não podem subscrever (banner amarelo + erro no join)
 
 ### Endpoints
 
@@ -51,6 +62,11 @@ stripe listen --forward-to http://localhost:8080/stripe/webhook
 |---|---|---|
 | POST | `/stripe/webhook` | `StripeWebhookController` (sem CSRF) |
 | GET | `/comunidades/{community}/pagamento-sucesso` | `CommunityController@paymentSuccess` |
+| GET | `/comunidades/{community}/connect` | `ConnectController@onboarding` |
+
+### Cartão de teste
+
+`4242 4242 4242 4242` — qualquer data futura, qualquer CVC.
 
 ## Links
 
