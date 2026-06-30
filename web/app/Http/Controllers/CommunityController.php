@@ -10,6 +10,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Stripe\StripeClient;
 
 class CommunityController extends Controller
 {
@@ -234,6 +235,18 @@ class CommunityController extends Controller
             abort(403);
         }
 
+        if ($user->id === $community->owner_id && $user->stripe_connect_id && $user->stripe_connect_status !== 'completed') {
+            try {
+                $stripe = new StripeClient(config('stripe.secret'));
+                $account = @$stripe->accounts->retrieve($user->stripe_connect_id);
+                if ($account->charges_enabled) {
+                    $user->update(['stripe_connect_status' => 'completed']);
+                }
+            } catch (\Exception) {
+                // account deleted on Stripe, ignore
+            }
+        }
+
         $data = [
             'community' => $community,
             'section' => $section,
@@ -246,12 +259,15 @@ class CommunityController extends Controller
             if (!$channelName) {
                 return redirect()->route('communities.app', [$community->slug, 'gerir']);
             }
+            if (!$sub) {
+                return redirect()->route('communities.app', [$community->slug, 'canais', $channelName]);
+            }
             $channel = $community->channels()->where('name', $channelName)->firstOrFail();
 
             $messages = $channel->messages()
                 ->with('user')
-                ->latest()
-                ->limit(50)
+                ->orderBy('id', 'desc')
+                ->limit(100)
                 ->get()
                 ->reverse()
                 ->values();

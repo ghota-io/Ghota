@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react'
+import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { Sun, Moon, User, Mail, Lock, Eye, EyeOff, Trash2, ChevronLeft } from 'lucide-react'
 import GhotaNavbar from '@/Components/GhotaNavbar'
 import { getPersistedTheme, setPersistedTheme } from '@/theme'
 
 export default function Edit({ mustVerifyEmail, status }) {
-    const { auth } = usePage().props
+    const { auth, csrf_token } = usePage().props
     const user = auth.user
 
     const [theme, setTheme] = useState(() => getPersistedTheme() ?? user?.theme ?? 'light')
@@ -18,7 +18,11 @@ export default function Edit({ mustVerifyEmail, status }) {
         const next = theme === 'dark' ? 'light' : 'dark'
         setPersistedTheme(next)
         setTheme(next)
-        router.patch(route('profile.theme'), { theme: next })
+        fetch(route('profile.theme'), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf_token },
+            body: JSON.stringify({ theme: next }),
+        })
     }
 
     return (

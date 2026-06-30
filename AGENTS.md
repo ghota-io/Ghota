@@ -20,6 +20,7 @@ Instruções para agentes. Lê `.opencode/context/aplicacao.md` antes de qualque
 | `docker compose exec app php artisan make: migration ...` | Criar migration |
 | `docker compose exec app composer require ...` | Instalar pacote PHP |
 | `docker compose exec app php artisan test` | Correr testes |
+| `docker compose exec app php artisan messages:archive` | Arquivar mensagens >30 dias |
 
 ## Stripe
 

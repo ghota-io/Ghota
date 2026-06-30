@@ -104,6 +104,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/comunidades/{community}/gerir', [CommunityController::class, 'manage'])->name('communities.manage');
     Route::get('/comunidades/{community}/connect', [ConnectController::class, 'onboarding'])->name('communities.connect.onboarding');
+    Route::get('/comunidades/{community}/connect/atualizar', [ConnectController::class, 'update'])->name('communities.connect.update');
     Route::delete('/comunidades/{community}/membros/{user}', [CommunityController::class, 'removeMember'])->name('communities.members.remove');
     Route::put('/comunidades/{community}/membros/{user}/cargo', [CommunityController::class, 'changeMemberRole'])->name('communities.members.role');
 
@@ -116,6 +117,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/categorias/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     // Community internal — unified app layout
+    Route::get('/comunidades/{community}/app', function (\App\Models\Community $community) {
+        $first = $community->channels()->orderBy('order')->orderBy('id')->first();
+        return redirect()->route('communities.app', [
+            $community->slug,
+            'canais',
+            $first?->name ?? 'geral',
+        ]);
+    })->name('communities.app.root');
     Route::get('/comunidades/{community}/app/{section?}/{sub?}', [CommunityController::class, 'app'])->name('communities.app');
 
     // Community internal — channel view

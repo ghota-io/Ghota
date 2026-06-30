@@ -519,6 +519,7 @@ function PlanManageContent({ community, isOwner }) {
     const { auth } = usePage().props
     const user = auth?.user ?? null
     const connectCompleted = user?.stripe_connect_status === 'completed'
+    const connectStarted = !!user?.stripe_connect_id
     const hasPaidPlans = plans.some(p => !p.is_free && parseFloat(p.price) > 0)
     const addPlan = () => setPlans([...plans, { name: '', price: '0', description: '', is_free: plans.length === 0 }])
     const removePlan = (i) => { if (plans.length <= 1) return; setPlans(plans.filter((_, idx) => idx !== i)) }
@@ -535,7 +536,7 @@ function PlanManageContent({ community, isOwner }) {
     }
     return (
         <div className="max-w-2xl mx-auto p-6">
-            {isOwner && hasPaidPlans && !connectCompleted && (
+            {isOwner && !connectStarted && hasPaidPlans && (
                 <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-5 mb-6">
                     <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-1">Configuração de pagamentos necessária</h3>
                     <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
@@ -548,12 +549,32 @@ function PlanManageContent({ community, isOwner }) {
                     </a>
                 </div>
             )}
+            {isOwner && connectStarted && !connectCompleted && (
+                <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl px-5 py-3 mb-6 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Setup da conta Stripe iniciado. Continua o registo para ativar pagamentos.
+                        </p>
+                    </div>
+                    <a href={route('communities.connect.onboarding', community.slug)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shrink-0">
+                        Continuar setup
+                    </a>
+                </div>
+            )}
             {isOwner && connectCompleted && (
-                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl px-5 py-3 mb-6 flex items-center gap-3">
-                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                        Conta Stripe ligada com sucesso. Os membros já podem subscrever planos pagos.
-                    </p>
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl px-5 py-3 mb-6 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                            Conta Stripe ligada. Os membros podem subscrever planos pagos.
+                        </p>
+                    </div>
+                    <a href={route('communities.connect.update', community.slug)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shrink-0">
+                        Alterar Dados
+                    </a>
                 </div>
             )}
             <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">

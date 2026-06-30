@@ -4,7 +4,7 @@ import { Hash, Users, Settings, CreditCard, Sun, Moon, User } from 'lucide-react
 import { getPersistedTheme, setPersistedTheme } from '@/theme'
 
 export default function ActivityBar({ community, user, section }) {
-    const { auth } = usePage().props
+    const { auth, csrf_token } = usePage().props
     const isOwner = user?.id === community.owner_id
     const isAdmin = isOwner
     const hasPlans = (community.plans?.length ?? 0) > 0
@@ -21,7 +21,11 @@ export default function ActivityBar({ community, user, section }) {
         const next = theme === 'dark' ? 'light' : 'dark'
         setPersistedTheme(next)
         setTheme(next)
-        router.patch(route('profile.theme'), { theme: next })
+        fetch(route('profile.theme'), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf_token },
+            body: JSON.stringify({ theme: next }),
+        })
     }
 
     useEffect(() => {

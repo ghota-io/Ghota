@@ -14,11 +14,35 @@ class CommunitySeeder extends Seeder
 {
     public function run(): void
     {
-        $ana = User::firstOrCreate(['email' => 'ana@ghota.io'], ['name' => 'Ana Rita', 'password' => bcrypt('password')]);
-        $mario = User::firstOrCreate(['email' => 'mario@ghota.io'], ['name' => 'Mário Carlos', 'password' => bcrypt('password')]);
-        $joao = User::firstOrCreate(['email' => 'joao@ghota.io'], ['name' => 'João Pereira', 'password' => bcrypt('password')]);
-        $sofia = User::firstOrCreate(['email' => 'sofia@ghota.io'], ['name' => 'Sofia Mendes', 'password' => bcrypt('password')]);
-        $rui = User::firstOrCreate(['email' => 'rui@ghota.io'], ['name' => 'Rui Costa', 'password' => bcrypt('password')]);
+        $ana = User::updateOrCreate(['email' => 'ana@ghota.io'], [
+            'name' => 'Ana Rita',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+            'stripe_connect_id' => 'acct_1TnnFKINvlqGVSzO',
+            'stripe_connect_status' => 'completed',
+        ]);
+        $mario = User::firstOrCreate(['email' => 'mario@ghota.io'], [
+            'name' => 'Mário Carlos',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+            'stripe_connect_id' => 'acct_1TnpUeIrptQeFzAk',
+            'stripe_connect_status' => 'completed',
+        ]);
+        $joao = User::firstOrCreate(['email' => 'joao@ghota.io'],  [
+            'name' => 'João Pereira', 
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+        ]);
+        $sofia = User::firstOrCreate(['email' => 'sofia@ghota.io'], [
+            'name' => 'Sofia Mendes',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+        ]);
+        $rui = User::firstOrCreate(['email' => 'rui@ghota.io'], [
+            'name' => 'Rui Costa',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+        ]);
 
         $this->makeCommunity([
             'owner' => $ana,

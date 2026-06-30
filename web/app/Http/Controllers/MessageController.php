@@ -33,7 +33,7 @@ class MessageController extends Controller
         $messages = $channel->messages()
             ->with("user")
             ->where("id", ">", $after)
-            ->latest()
+            ->orderBy("id", "desc")
             ->limit(50)
             ->get()
             ->reverse()

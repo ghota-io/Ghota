@@ -25,7 +25,11 @@ export default function GhotaNavbar({ community = null, className = '', landingS
         const next = theme === 'dark' ? 'light' : 'dark'
         setPersistedTheme(next)
         setTheme(next)
-        router.patch(route('profile.theme'), { theme: next })
+        fetch(route('profile.theme'), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': page.props.csrf_token },
+            body: JSON.stringify({ theme: next }),
+        })
     }
 
     useEffect(() => {
