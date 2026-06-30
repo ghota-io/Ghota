@@ -8,9 +8,23 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\SwitchAccountController;
 use App\Http\Controllers\Auth\VerifyCodeController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('auth/switch', [SwitchAccountController::class, 'switch'])
+    ->name('auth.switch');
+
+Route::get('add-conta', [AuthenticatedSessionController::class, 'createAdd'])
+    ->name('add.account');
+
+Route::post('add-conta', [AuthenticatedSessionController::class, 'storeAdd'])
+    ->name('add.account.store');
+
+Route::get('escolher-conta', function () {
+    return \Inertia\Inertia::render('Auth/ChooseAccount');
+})->name('choose.account');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
