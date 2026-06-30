@@ -67,9 +67,48 @@ Route::get('/dashboard', function () {
         ->unique('id')
         ->where('owner_id', '!=', $user->id)
         ->values();
+
+    $subscriptions = $user->subscriptions()
+        ->with(['plan', 'community'])
+        ->where('status', 'active')
+        ->latest()
+        ->take(3)
+        ->get()
+        ->map(fn ($s) => [
+            'type' => 'subscription',
+            'id' => $s->id,
+            'name' => $s->plan?->name ?? 'Plano',
+            'community' => $s->community,
+            'status' => $s->status,
+            'price' => $s->plan?->price,
+        ]);
+
+    $freePlans = $user->memberships()
+        ->whereHas('community.plans', fn ($q) => $q->where('is_free', true))
+        ->with(['community.plans' => fn ($q) => $q->where('is_free', true)->orderBy('sort_order')])
+        ->get()
+        ->map(fn ($m) => [
+            'type' => 'free',
+            'id' => 'free-' . $m->community_id,
+            'name' => $m->community->plans->first()?->name ?? 'Gratuito',
+            'community' => $m->community,
+            'status' => 'active',
+            'price' => 0,
+        ]);
+
+    $myPlans = $subscriptions->concat($freePlans)->take(3);
+
+    $upcomingEvents = \App\Models\Event::with('community')
+        ->where('starts_at', '>=', now())
+        ->orderBy('starts_at')
+        ->take(4)
+        ->get();
+
     return Inertia::render('Dashboard', [
         'ownedCommunities' => $owned,
         'memberCommunities' => $memberCommunities,
+        'myPlans' => $myPlans,
+        'upcomingEvents' => $upcomingEvents,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -78,6 +117,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/theme', [ProfileController::class, 'updateTheme'])->name('profile.theme');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/calendario', function () {
+        $events = \App\Models\Event::with('community')
+            ->whereMonth('starts_at', now()->month)
+            ->orWhereMonth('starts_at', now()->addMonth()->month)
+            ->orderBy('starts_at')
+            ->get();
+        return Inertia::render('Calendar', ['events' => $events]);
+    })->name('calendar');
 });
 
 // Communities — público
