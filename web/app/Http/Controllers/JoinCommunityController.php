@@ -32,16 +32,13 @@ class JoinCommunityController extends Controller
             return $this->redirectToApp($community);
         }
 
-        $defaultRole = $community->getDefaultRole();
-
         $freePlan = $community->plans()->where('is_free', true)->first();
 
         if ($freePlan) {
             Membership::create([
                 'community_id' => $community->id,
                 'user_id' => $request->user()->id,
-                'role' => 'member',
-                'community_role_id' => $defaultRole->id,
+                'is_owner' => false,
             ]);
 
             return $this->redirectToApp($community);
@@ -108,8 +105,7 @@ class JoinCommunityController extends Controller
         Membership::create([
             'community_id' => $community->id,
             'user_id' => $request->user()->id,
-            'role' => 'member',
-            'community_role_id' => $defaultRole->id,
+            'is_owner' => false,
         ]);
 
         return $this->redirectToApp($community);

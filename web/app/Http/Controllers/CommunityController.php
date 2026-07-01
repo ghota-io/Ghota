@@ -80,7 +80,7 @@ class CommunityController extends Controller
         Membership::create([
             'community_id' => $community->id,
             'user_id' => $request->user()->id,
-            'role' => 'owner',
+            'is_owner' => true,
         ]);
 
         foreach ($validated['plans'] as $i => $plan) {
@@ -340,16 +340,15 @@ class CommunityController extends Controller
                 $sub = $subscriptions->get($member->user_id);
                 return [
                     'id' => $member->id,
-                    'role' => $member->role,
                     'user' => $member->user,
-                    'plan_name' => $sub?->plan?->name ?? ($member->role === 'owner' ? '—' : 'Grátis'),
+                    'is_owner' => $member->is_owner,
+                    'plan_name' => $sub?->plan?->name ?? ($member->is_owner ? '—' : 'Nenhum'),
                     'community_role_id' => $member->community_role_id,
-                    'community_role_name' => $member->communityRole?->name ?? ($member->role === 'owner' ? 'Owner' : '—'),
+                    'community_role_name' => $member->communityRole?->name ?? ($member->is_owner ? 'Owner' : '—'),
                     'joined_at' => $member->created_at,
                 ];
             });
 
-            $community->getDefaultRole();
             $community->load('roles');
             $data['membersSub'] = $sub ?? 'lista';
         } elseif ($section === 'planos') {

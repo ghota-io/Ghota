@@ -20,6 +20,7 @@ class CommunitySeeder extends Seeder
             'email_verified_at' => now(),
             'stripe_connect_id' => 'acct_1TnnFKINvlqGVSzO',
             'stripe_connect_status' => 'completed',
+            'theme' => 'dark',
         ]);
         $mario = User::firstOrCreate(['email' => 'mario@ghota.io'], [
             'name' => 'Mário Carlos',
@@ -27,6 +28,7 @@ class CommunitySeeder extends Seeder
             'email_verified_at' => now(),
             'stripe_connect_id' => 'acct_1TnpUeIrptQeFzAk',
             'stripe_connect_status' => 'completed',
+            'theme' => 'dark',
         ]);
         $joao = User::firstOrCreate(['email' => 'joao@ghota.io'],  [
             'name' => 'João Pereira', 
@@ -34,6 +36,7 @@ class CommunitySeeder extends Seeder
             'email_verified_at' => now(),
             'stripe_connect_id' => 'acct_1To5gzInYJk1mUCk',
             'stripe_connect_status' => 'completed',
+            'theme' => 'dark',
         ]);
         $sofia = User::firstOrCreate(['email' => 'sofia@ghota.io'], [
             'name' => 'Sofia Mendes',
@@ -209,14 +212,14 @@ class CommunitySeeder extends Seeder
         Membership::create([
             'community_id' => $community->id,
             'user_id' => $data['owner']->id,
-            'role' => 'owner',
+            'is_owner' => true,
         ]);
 
         foreach ($data['members'] as $member) {
             Membership::create([
                 'community_id' => $community->id,
                 'user_id' => $member->id,
-                'role' => 'member',
+                'is_owner' => false,
             ]);
         }
 

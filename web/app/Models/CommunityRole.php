@@ -12,7 +12,6 @@ class CommunityRole extends Model
     protected $fillable = [
         "community_id",
         "name",
-        "is_default",
         "permissions",
     ];
 
@@ -20,7 +19,6 @@ class CommunityRole extends Model
     {
         return [
             "permissions" => "array",
-            "is_default" => "boolean",
         ];
     }
 

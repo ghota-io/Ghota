@@ -47,7 +47,7 @@ export default function MessageInput({ channel, onSend }) {
                     onKeyDown={handleKeyDown}
                     disabled={sending}
                     placeholder={`Mensagem para # ${channel.name}`}
-                    className="w-full bg-white dark:bg-[#2b2d31] text-gray-900 dark:text-white text-sm px-4 py-3 pr-12 rounded-lg outline-none border border-gray-200 dark:border-[#1e1f22] focus:border-violet-400/50 dark:focus:border-violet-500/50 placeholder-gray-400 dark:placeholder-gray-500 transition-colors disabled:opacity-50"
+                    className="w-full bg-white dark:bg-[#2b2d31] text-gray-900 dark:text-white text-sm px-4 py-3 pr-12 rounded-lg border-0 focus:border-0 outline-none focus:outline-none ring-0 focus:ring-0 focus:ring-transparent focus:shadow-none placeholder-gray-400 dark:placeholder-gray-500 transition-colors disabled:opacity-50"
                 />
                 <button
                     type="submit"

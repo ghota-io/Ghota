@@ -71,15 +71,11 @@ class StripeWebhookController extends Controller
             ]);
         }
 
-        $community = Community::find($communityId);
-        $defaultRole = $community?->getDefaultRole();
-
         Membership::firstOrCreate([
             'community_id' => $communityId,
             'user_id' => $userId,
         ], [
-            'role' => 'member',
-            'community_role_id' => $defaultRole?->id,
+            'is_owner' => false,
         ]);
     }
 

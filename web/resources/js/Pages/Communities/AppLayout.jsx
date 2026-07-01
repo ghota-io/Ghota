@@ -751,9 +751,6 @@ function MembersSection({ community, isOwner }) {
     const removeMember = (user) => {
         if (confirm(`Tens a certeza que queres remover ${user.name} da comunidade?`)) router.delete(route('communities.members.remove', [community.slug, user.id]))
     }
-    const roleIcon = (role) => {
-        switch (role) { case 'owner': return <Crown className="w-4 h-4 text-amber-500" />; case 'admin': return <Shield className="w-4 h-4 text-indigo-500" />; default: return <Users className="w-4 h-4 text-gray-400" /> }
-    }
     return (
         <div className="max-w-2xl mx-auto p-6">
             <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">
@@ -769,8 +766,8 @@ function MembersSection({ community, isOwner }) {
                                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{m.user?.name}</p>
                                 <p className="text-xs text-gray-400 truncate">{m.user?.email}</p>
                             </div>
-                            <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">{roleIcon(m.role)}{m.role === 'owner' ? 'Owner' : m.role === 'admin' ? 'Admin' : 'Membro'}</span>
-                            {isOwner && m.role !== 'owner' && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{m.is_owner ? 'Owner' : 'Membro'}</span>
+                            {isOwner && !m.is_owner && (
                                 <button onClick={() => removeMember(m.user)} className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5" /></button>
                             )}
                         </div>
@@ -871,6 +868,7 @@ function MembersTable({ members, isOwner, community, roles }) {
                                     <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Nome</th>
                                     <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Email</th>
                                     <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Cargo</th>
+                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Plano</th>
                                     <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Membro desde</th>
                                     {isOwner && (
                                         <th className="text-right px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Opções</th>
@@ -880,7 +878,7 @@ function MembersTable({ members, isOwner, community, roles }) {
                             <tbody className="divide-y divide-gray-100 dark:divide-[#1e1f22]">
                                 {members.length === 0 && (
                                     <tr>
-                                        <td colSpan={isOwner ? 5 : 4} className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
+                                        <td colSpan={isOwner ? 6 : 5} className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
                                             Nenhum membro ainda.
                                         </td>
                                     </tr>
@@ -894,7 +892,7 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                 </span>
                                                 <div>
                                                     <span className="text-sm font-medium text-gray-900 dark:text-white">{m.user?.name}</span>
-                                                    {m.role === 'owner' && (
+                                                    {m.is_owner && (
                                                         <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
                                                             <Crown className="w-3 h-3" /> Owner
                                                         </span>
@@ -904,7 +902,7 @@ function MembersTable({ members, isOwner, community, roles }) {
                                         </td>
                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400">{m.user?.email}</td>
                                         <td className="px-6 py-3">
-                                            {isOwner && m.role !== 'owner' ? (
+                                            {isOwner && !m.is_owner ? (
                                                 <div className="relative">
                                                     <button
                                                         onClick={() => setOpenDropdown(openDropdown === `role-${m.id}` ? null : `role-${m.id}`)}
@@ -924,26 +922,27 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                                             : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c]'
                                                                     }`}
                                                                 >
-                                                                    {r.name} {r.is_default && <span className="text-[10px] text-gray-400 ml-1">(padrão)</span>}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
-                                                    {m.role === 'owner' ? (
-                                                        <><Crown className="w-3.5 h-3.5 text-amber-500" /> Owner</>
-                                                    ) : (
-                                                        m.community_role_name
-                                                    )}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{timeAgo(m.joined_at)}</td>
-                                        {isOwner && (
-                                            <td className="px-6 py-3 text-right">
-                                                {m.role !== 'owner' && (
+                                                                     {r.name}
+                                                                 </button>
+                                                             ))}
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             ) : (
+                                                 <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                     {m.is_owner ? (
+                                                         <><Crown className="w-3.5 h-3.5 text-amber-500" /> Owner</>
+                                                     ) : (
+                                                         m.community_role_name
+                                                     )}
+                                                 </span>
+                                             )}
+                                         </td>
+                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400">{m.plan_name}</td>
+                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{timeAgo(m.joined_at)}</td>
+                                         {isOwner && (
+                                             <td className="px-6 py-3 text-right">
+                                                 {!m.is_owner && (
                                                     <div className="relative inline-block">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === m.id ? null : m.id); setChangingRole(null) }}
@@ -972,8 +971,8 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                                                         : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c]'
                                                                                 }`}
                                                                             >
-                                                                                {r.name} {r.is_default && <span className="text-[10px] text-gray-400 ml-1">(padrão)</span>}
-                                                                            </button>
+                                                                                 {r.name}
+                                                                             </button>
                                                                         ))}
                                                                     </div>
                                                                 )}
@@ -1012,7 +1011,6 @@ function RolesContent({ community, isOwner }) {
         manage_roles: 'Gerir Cargos',
         manage_members: 'Gerir Membros',
         manage_messages: 'Gerir Mensagens',
-        manage_plans: 'Gerir Planos',
         manage_categories: 'Gerir Categorias',
         manage_channels: 'Gerir Canais',
     }
@@ -1092,9 +1090,7 @@ function RolesContent({ community, isOwner }) {
                 )}
 
                 {roles.map((role) => (
-                    <div key={role.id} className={`bg-white dark:bg-[#2b2d31] rounded-2xl border overflow-hidden ${
-                        role.is_default ? 'border-indigo-200 dark:border-indigo-900/50' : 'border-gray-200 dark:border-[#1e1f22]'
-                    }`}>
+                    <div key={role.id} className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100 dark:border-[#1e1f22] flex items-center justify-between">
                             {editingId === role.id ? (
                                 <div className="flex items-center gap-3 flex-1">
@@ -1108,22 +1104,15 @@ function RolesContent({ community, isOwner }) {
                                 <>
                                     <div className="flex items-center gap-3">
                                         <h3 className="text-base font-bold text-gray-900 dark:text-white">{role.name}</h3>
-                                        {role.is_default && (
-                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full">
-                                                Padrão
-                                            </span>
-                                        )}
                                     </div>
                                     {isOwner && (
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => startEdit(role)} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
                                                 <Pencil className="w-4 h-4" />
                                             </button>
-                                            {!role.is_default && (
-                                                <button onClick={() => deleteRole(role)} className="text-xs text-gray-400 hover:text-red-500 transition">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            )}
+                                            <button onClick={() => deleteRole(role)} className="text-xs text-gray-400 hover:text-red-500 transition">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     )}
                                 </>
@@ -1159,11 +1148,7 @@ function RolesContent({ community, isOwner }) {
                                         ))
                                     )}
                                 </div>
-                                {role.is_default && (
-                                    <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 italic">
-                                        Cargo atribuído automaticamente a novos membros. Edita as permissões para definir o acesso padrão.
-                                    </p>
-                                )}
+
                             </div>
                         )}
                     </div>

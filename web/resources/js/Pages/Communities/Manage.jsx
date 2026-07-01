@@ -407,22 +407,6 @@ function MembersSection({ community }) {
         }
     }
 
-    const roleIcon = (role) => {
-        switch (role) {
-            case 'owner': return <Crown className="w-4 h-4 text-amber-500" />
-            case 'admin': return <Shield className="w-4 h-4 text-indigo-500" />
-            default: return <Users className="w-4 h-4 text-gray-400" />
-        }
-    }
-
-    const roleLabel = (role) => {
-        switch (role) {
-            case 'owner': return 'Owner'
-            case 'admin': return 'Admin'
-            default: return 'Membro'
-        }
-    }
-
     return (
         <div className="bg-white dark:bg-[#2b2d31] rounded-2xl border border-gray-200 dark:border-[#1e1f22] p-6">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">Membros ({members.length})</h2>
@@ -443,11 +427,8 @@ function MembersSection({ community }) {
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{membership.user?.name}</p>
                             <p className="text-xs text-gray-400 truncate">{membership.user?.email}</p>
                         </div>
-                        <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                            {roleIcon(membership.role)}
-                            {roleLabel(membership.role)}
-                        </span>
-                        {membership.role !== 'owner' && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{membership.is_owner ? 'Owner' : 'Membro'}</span>
+                        {!membership.is_owner && (
                             <button
                                 onClick={() => removeMember(membership.user)}
                                 className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition opacity-0 group-hover:opacity-100"

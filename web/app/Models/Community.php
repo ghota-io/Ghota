@@ -47,29 +47,10 @@ class Community extends Model
             $community->code = $community->code ?? Str::random(10);
         });
 
-        static::created(function (self $community) {
-            $community->roles()->create([
-                'name' => 'Membro',
-                'is_default' => true,
-                'permissions' => [],
-            ]);
-        });
+
     }
 
-    public function getDefaultRole(): CommunityRole
-    {
-        $role = $this->roles()->where('is_default', true)->first();
 
-        if (!$role) {
-            $role = $this->roles()->create([
-                'name' => 'Membro',
-                'is_default' => true,
-                'permissions' => [],
-            ]);
-        }
-
-        return $role;
-    }
 
     public function owner(): BelongsTo
     {

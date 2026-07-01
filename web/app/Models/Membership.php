@@ -12,10 +12,17 @@ class Membership extends Model
     protected $fillable = [
         "community_id",
         "user_id",
-        "role",
+        "is_owner",
         "status",
         "community_role_id",
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_owner' => 'boolean',
+        ];
+    }
 
     public function community(): BelongsTo
     {
