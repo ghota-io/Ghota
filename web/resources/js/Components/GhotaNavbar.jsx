@@ -3,7 +3,6 @@ import { Link, usePage, router } from '@inertiajs/react'
 import { ChevronsUpDown, Bell, Plus, Compass, Sun, Moon, User, Menu, X } from 'lucide-react'
 import { getPersistedTheme, setPersistedTheme } from '@/theme'
 import GhotaLogo from '@/Components/GhotaLogo'
-import AccountSwitcher, { getSavedAccounts, saveAccounts as saveGhotaAccounts } from '@/Components/AccountSwitcher'
 
 export default function GhotaNavbar({ community = null, className = '', landingStyle = false }) {
     const { auth, myCommunities, url } = usePage().props
@@ -205,18 +204,9 @@ export default function GhotaNavbar({ community = null, className = '', landingS
                                                 : <Moon className={`w-4 h-4 ${isLanding ? 'text-white/40' : 'text-gray-400'}`} />}
                                             {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
                                         </button>
-                                        <AccountSwitcher isLanding={isLanding} onClose={() => setUserOpen(false)} />
                                         <div className={`h-px my-2 mx-4 ${isLanding ? 'bg-white/5' : 'bg-gray-100 dark:bg-[#1e1f22]'}`} />
                                         <button
-                                            onClick={() => {
-                                                const accounts = getSavedAccounts()
-                                                const remaining = accounts.filter(a => a.id !== user?.id)
-                                                saveGhotaAccounts(remaining)
-                                                router.post(route('logout'), {
-                                                    other_accounts: remaining.length > 0 ? '1' : '0',
-                                                })
-                                                setUserOpen(false)
-                                            }}
+                                            onClick={() => { router.post(route('logout')); setUserOpen(false) }}
                                             className={`flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm transition ${isLanding ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -306,15 +296,7 @@ export default function GhotaNavbar({ community = null, className = '', landingS
                                         Dashboard
                                     </Link>
                                     <button
-                                        onClick={() => {
-                                            const accounts = getSavedAccounts()
-                                            const remaining = accounts.filter(a => a.id !== user?.id)
-                                            saveGhotaAccounts(remaining)
-                                            router.post(route('logout'), {
-                                                other_accounts: remaining.length > 0 ? '1' : '0',
-                                            })
-                                            setMobileMenuOpen(false)
-                                        }}
+                                        onClick={() => { router.post(route('logout')); setMobileMenuOpen(false) }}
                                         className={`block w-full text-left text-sm py-2.5 px-3 rounded-lg transition ${isLanding ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
                                     >
                                         Terminar Sessão

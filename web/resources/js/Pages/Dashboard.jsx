@@ -128,10 +128,17 @@ export default function Dashboard({ ownedCommunities, memberCommunities, myPlans
                         <div className="lg:col-span-1">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Os meus planos</h2>
+                                <Link
+                                    href={route('communities.index')}
+                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition"
+                                >
+                                    <CreditCard className="w-4 h-4" />
+                                    Ver todos os planos
+                                </Link>
                             </div>
 
                             {myPlans.length > 0 ? (
-                                <div className="space-y-3 max-h-[18rem] overflow-y-auto">
+                                <div className="space-y-3">
                                     {myPlans.map((plan) => (
                                         <Link
                                             key={plan.id}
@@ -161,6 +168,8 @@ export default function Dashboard({ ownedCommunities, memberCommunities, myPlans
                                         href={route('communities.index')}
                                         className="inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition shadow-lg shadow-gray-900/10"
                                     >
+                                        <Compass className="w-4 h-4" />
+                                        Explorar planos
                                     </Link>
                                 </div>
                             )}

@@ -1,12 +1,11 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import GhotaNavbar from '@/Components/GhotaNavbar';
 import InputError from '@/Components/InputError';
 import Checkbox from '@/Components/Checkbox';
-import { getSavedAccounts } from '@/Components/AccountSwitcher';
 
-export default function Login({ status, canResetPassword, addAccount = false }) {
+export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -14,23 +13,16 @@ export default function Login({ status, canResetPassword, addAccount = false }) 
     });
     const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        if (!addAccount && getSavedAccounts().length > 0) {
-            router.get(route('choose.account'));
-        }
-    }, []);
-
     const submit = (e) => {
         e.preventDefault();
-        const url = addAccount ? route('add.account.store') : route('login');
-        post(url, {
+        post(route('login'), {
             onFinish: () => reset('password'),
         });
     };
 
     return (
         <>
-            <Head title={addAccount ? 'Adicionar conta' : 'Entrar'} />
+            <Head title="Entrar" />
 
             <div className="min-h-screen bg-white dark:bg-[#1e1f22]">
                 <GhotaNavbar />
@@ -39,17 +31,13 @@ export default function Login({ status, canResetPassword, addAccount = false }) 
                     <div className="w-full max-w-sm">
                         <div className="text-center mb-10">
                             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                                {addAccount ? 'Adicionar conta' : 'Entrar'}
+                                Entrar
                             </h1>
                             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                {addAccount
-                                    ? 'Faz login com outra conta para a adicionares ao seletor.'
-                                    : <>Ainda não tens conta?{' '}
-                                        <Link href={route('register')} className="font-medium text-indigo-600 hover:text-indigo-500 transition">
-                                            Criar conta
-                                        </Link>
-                                    </>
-                                }
+                                Ainda não tens conta?{' '}
+                                <Link href={route('register')} className="font-medium text-indigo-600 hover:text-indigo-500 transition">
+                                    Criar conta
+                                </Link>
                             </p>
                         </div>
 

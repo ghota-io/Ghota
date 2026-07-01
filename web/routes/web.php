@@ -72,6 +72,7 @@ Route::get('/dashboard', function () {
         ->with(['plan', 'community'])
         ->where('status', 'active')
         ->latest()
+        ->take(3)
         ->get()
         ->map(fn ($s) => [
             'type' => 'subscription',
@@ -95,15 +96,12 @@ Route::get('/dashboard', function () {
             'price' => 0,
         ]);
 
-    $myPlans = $subscriptions->concat($freePlans);
-
-    $communityIds = $owned->pluck('id')->merge($memberCommunities->pluck('id'))->unique()->values();
+    $myPlans = $subscriptions->concat($freePlans)->take(3);
 
     $upcomingEvents = \App\Models\Event::with('community')
-        ->whereIn('community_id', $communityIds)
-        ->where('starts_at', '>=', now()->startOfMonth())
+        ->where('starts_at', '>=', now())
         ->orderBy('starts_at')
-        ->take(6)
+        ->take(4)
         ->get();
 
     return Inertia::render('Dashboard', [
