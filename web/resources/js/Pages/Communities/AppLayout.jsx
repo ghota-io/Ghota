@@ -17,16 +17,19 @@ function ChannelSidebar({ community, currentChannel, isOwner }) {
     const [creatingCategory, setCreatingCategory] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState('')
     const [communityDropdownOpen, setCommunityDropdownOpen] = useState(false)
+    const [createDropdownOpen, setCreateDropdownOpen] = useState(false)
     const contextRef = useRef(null)
     const editInputRef = useRef(null)
     const createInputRef = useRef(null)
     const communityDropdownRef = useRef(null)
+    const createDropdownRef = useRef(null)
     const { myCommunities } = usePage().props
 
     useEffect(() => {
         const handler = (e) => {
             if (contextRef.current && !contextRef.current.contains(e.target)) setContextMenu(null)
             if (communityDropdownRef.current && !communityDropdownRef.current.contains(e.target)) setCommunityDropdownOpen(false)
+            if (createDropdownRef.current && !createDropdownRef.current.contains(e.target)) setCreateDropdownOpen(false)
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
@@ -180,19 +183,32 @@ function ChannelSidebar({ community, currentChannel, isOwner }) {
             {isOwner && (
                 <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-[#1e1f22] shrink-0">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Canais</span>
-                    <div className="flex items-center gap-0.5">
-                        <button onClick={() => { setCreatingCategory(true); setCreatingForCategory(null) }} title="Nova Categoria"
-                            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#35373c] rounded-md transition">
-                            <Folder className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => {
-                            const catId = currentChannel?.category_id
-                            if (catId) { setCreatingForCategory(catId); setCreatingCategory(false) }
-                            else { setCreatingCategory(true); setCreatingForCategory(null) }
-                        }} title="Novo Canal"
+                    <div className="flex items-center gap-0.5 relative" ref={createDropdownRef}>
+                        <button onClick={() => setCreateDropdownOpen(v => !v)} title="Criar"
                             className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#35373c] rounded-md transition">
                             <Plus className="w-3.5 h-3.5" />
                         </button>
+                        {createDropdownOpen && (
+                            <div className="absolute right-0 top-full mt-1 z-[200] w-40 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1">
+                                <button onClick={() => {
+                                    const catId = currentChannel?.category_id
+                                    if (catId) { setCreatingForCategory(catId); setCreatingCategory(false) }
+                                    else { setCreatingCategory(true); setCreatingForCategory(null) }
+                                    setCreateDropdownOpen(false)
+                                }} className="flex items-center gap-2 w-full text-left px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition">
+                                    <Hash className="w-3 h-3 text-gray-400" />
+                                    Novo Canal
+                                </button>
+                                <button onClick={() => {
+                                    setCreatingCategory(true)
+                                    setCreatingForCategory(null)
+                                    setCreateDropdownOpen(false)
+                                }} className="flex items-center gap-2 w-full text-left px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition">
+                                    <Folder className="w-3 h-3 text-gray-400" />
+                                    Nova Categoria
+                                </button>
+                            </div>
+                        )}
                         <Link href={route('communities.app', [community.slug, 'gerir', 'channels'])} title="Gerir Canais"
                             className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#35373c] rounded-md transition">
                             <Settings className="w-3.5 h-3.5" />

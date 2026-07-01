@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
 import { Hash, Loader2 } from 'lucide-react'
 import MessageGroup from '@/Components/MessageGroup'
 import MessageInput from '@/Components/MessageInput'
@@ -17,11 +17,19 @@ export default function ChatArea({ channel, messages: initialMessages, user, com
         channelIdRef.current = channel.id
     }, [channel.id])
 
-    useEffect(() => {
-        if (scrollRef.current && messages.length > 0) {
+    const prevLengthRef = useRef(0)
+    const hasScrolledRef = useRef(false)
+
+    useLayoutEffect(() => {
+        if (!scrollRef.current) return
+        const hasNewMessages = messages.length > prevLengthRef.current
+        const needsInitialScroll = !hasScrolledRef.current && messages.length > 0
+        if (hasNewMessages || needsInitialScroll) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+            hasScrolledRef.current = true
         }
-    }, [messages.length])
+        prevLengthRef.current = messages.length
+    })
 
     useEffect(() => {
         if (loading) return

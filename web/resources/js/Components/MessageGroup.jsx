@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { format } from '@/time'
 import { Pencil, Trash2, X, Check } from 'lucide-react'
+import MarkdownRenderer from '@/Components/MarkdownRenderer'
 
 export default function MessageGroup({ group, currentUserId, onEdit, onDelete }) {
     const firstMessage = group.messages[0]
@@ -64,8 +65,16 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
         if (editing) {
             inputRef.current?.focus()
             inputRef.current?.select()
+            inputRef.current.style.height = 'auto'
+            inputRef.current.style.height = inputRef.current.scrollHeight + 'px'
         }
     }, [editing])
+
+    const handleEditInput = (e) => {
+        const el = e.currentTarget
+        el.style.height = 'auto'
+        el.style.height = el.scrollHeight + 'px'
+    }
 
     const handleStartEdit = () => {
         setEditContent(message.content)
@@ -116,9 +125,10 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                             ref={inputRef}
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
+                            onInput={handleEditInput}
                             onKeyDown={handleKeyDown}
                             disabled={saving}
-                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[60px] placeholder-gray-400 dark:placeholder-gray-500"
+                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[36px] placeholder-gray-400 dark:placeholder-gray-500 overflow-hidden"
                         />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -145,8 +155,8 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
 
         return (
             <div className="group py-0.5 pr-5 relative hover:bg-gray-50 dark:hover:bg-white/[0.02]">
-                <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words pr-16">
-                    {message.content}
+                <div className="pr-16">
+                    <MarkdownRenderer content={message.content} />
                 </div>
                 {isAuthor && (
                     <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-white dark:bg-[#2b2d31] rounded-md border border-gray-200 dark:border-[#1e1f22] shadow-lg transition-opacity">
@@ -181,9 +191,10 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                             ref={inputRef}
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
+                            onInput={handleEditInput}
                             onKeyDown={handleKeyDown}
                             disabled={saving}
-                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[60px] placeholder-gray-400 dark:placeholder-gray-500"
+                            className="flex-1 bg-gray-100 dark:bg-[#1e1f22] text-gray-900 dark:text-white text-sm px-3 py-2 rounded-lg outline-none border border-violet-400/50 resize-none min-h-[36px] placeholder-gray-400 dark:placeholder-gray-500 overflow-hidden"
                         />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -224,8 +235,8 @@ function MessageRow({ message, user, currentUserId, onEdit, onDelete, showHeader
                         </span>
                     </div>
                 )}
-                <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mt-0.5 pr-16">
-                    {message.content}
+                <div className="mt-0.5 pr-16">
+                    <MarkdownRenderer content={message.content} />
                 </div>
 
                 {isAuthor && (
