@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Head, Link, router, usePage, useForm } from '@inertiajs/react'
-import { Hash, FileText, Plus, ChevronDown, ChevronRight, Pencil, Trash2, X, Check, ChevronsUpDown, Settings, Users, Shield, Crown, MoreHorizontal, Compass, Folder } from 'lucide-react'
+import { Hash, FileText, Plus, ChevronDown, ChevronRight, Pencil, Trash2, X, Check, ChevronsUpDown, Settings, Users, Shield, Crown, MoreHorizontal, Compass, Folder, Search, SlidersVertical } from 'lucide-react'
 import GhotaNavbar from '@/Components/GhotaNavbar'
 import ActivityBar from '@/Components/ActivityBar'
 import ChatArea from '@/Components/ChatArea'
@@ -806,16 +806,101 @@ function MembersTable({ members, isOwner, community, roles }) {
     const [changingRole, setChangingRole] = useState(null)
     const dropdownRef = useRef(null)
 
+    const [search, setSearch] = useState('')
+    const [roleFilters, setRoleFilters] = useState([])
+    const [planFilters, setPlanFilters] = useState([])
+    const [selectedIds, setSelectedIds] = useState(new Set())
+    const [sortField, setSortField] = useState('joined_at')
+    const [sortDir, setSortDir] = useState('desc')
+    const [showFilters, setShowFilters] = useState(false)
+    const [activeSubFilter, setActiveSubFilter] = useState(null)
+    const filtersRef = useRef(null)
+
     useEffect(() => {
         const handler = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpenDropdown(null)
                 setChangingRole(null)
             }
+            if (filtersRef.current && !filtersRef.current.contains(e.target)) {
+                setShowFilters(false)
+                setActiveSubFilter(null)
+            }
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
     }, [])
+
+    const uniqueRoles = useMemo(() => {
+        return [...new Set(members.map(m => m.community_role_name).filter(Boolean))].sort()
+    }, [members])
+
+    const uniquePlans = useMemo(() => {
+        return [...new Set(members.map(m => m.plan_name).filter(Boolean))].sort()
+    }, [members])
+
+    const filteredMembers = useMemo(() => {
+        let result = [...members]
+
+        if (search.trim()) {
+            const q = search.toLowerCase()
+            result = result.filter(m =>
+                m.user?.name?.toLowerCase().includes(q) ||
+                m.user?.email?.toLowerCase().includes(q)
+            )
+        }
+
+        if (roleFilters.length > 0) {
+            result = result.filter(m => roleFilters.includes(m.community_role_name))
+        }
+
+        if (planFilters.length > 0) {
+            result = result.filter(m => planFilters.includes(m.plan_name))
+        }
+
+        result.sort((a, b) => {
+            let cmp = 0
+            switch (sortField) {
+                case 'name':
+                    cmp = (a.user?.name ?? '').localeCompare(b.user?.name ?? '')
+                    break
+                case 'email':
+                    cmp = (a.user?.email ?? '').localeCompare(b.user?.email ?? '')
+                    break
+                case 'role':
+                    cmp = (a.community_role_name ?? '').localeCompare(b.community_role_name ?? '')
+                    break
+                case 'plan':
+                    cmp = (a.plan_name ?? '').localeCompare(b.plan_name ?? '')
+                    break
+                case 'joined_at':
+                    cmp = new Date(a.joined_at || 0) - new Date(b.joined_at || 0)
+                    break
+            }
+            return sortDir === 'asc' ? cmp : -cmp
+        })
+
+        return result
+    }, [members, search, roleFilters, planFilters, sortField, sortDir])
+
+    const toggleSort = (field) => {
+        if (sortField === field) {
+            setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortField(field)
+            setSortDir('asc')
+        }
+    }
+
+    const Th = ({ field, children }) => (
+        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition"
+            onClick={() => toggleSort(field)}>
+            {children}
+            {sortField === field && (
+                <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
+            )}
+        </th>
+    )
 
     const removeMember = (user) => {
         if (confirm(`Tens a certeza que queres remover ${user.name} da comunidade?`)) {
@@ -854,6 +939,18 @@ function MembersTable({ members, isOwner, community, roles }) {
         return `Há ${years} ${years === 1 ? 'ano' : 'anos'}`
     }
 
+    const toggleRoleFilter = (name) => {
+        setRoleFilters(prev =>
+            prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+        )
+    }
+
+    const togglePlanFilter = (name) => {
+        setPlanFilters(prev =>
+            prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+        )
+    }
+
     return (
         <main className="flex-1 overflow-hidden bg-gray-50 dark:bg-[#1e1f22] flex flex-col">
             <div className="flex-1 overflow-hidden flex flex-col">
@@ -861,30 +958,178 @@ function MembersTable({ members, isOwner, community, roles }) {
                     <div className="px-6 py-4 border-b border-gray-200 dark:border-[#1e1f22] shrink-0">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Membros ({members.length})</h2>
                     </div>
+                    <div className="px-6 py-3 border-b border-gray-100 dark:border-[#1e1f22] flex items-center gap-3 shrink-0">
+                        <div className="relative flex-1 max-w-xs">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                                placeholder="Procurar por nome ou email..."
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#1e1f22] border border-gray-200 dark:border-[#1e1f22] rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-400 transition" />
+                        </div>
+                        {(roleFilters.length > 0 || planFilters.length > 0) && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                {roleFilters.map(name => (
+                                    <button key={`role-${name}`} onClick={() => toggleRoleFilter(name)}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition cursor-pointer">
+                                        <Shield className="w-3 h-3" />
+                                        {name}
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                ))}
+                                {planFilters.map(name => (
+                                    <button key={`plan-${name}`} onClick={() => togglePlanFilter(name)}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition cursor-pointer">
+                                        <Users className="w-3 h-3" />
+                                        {name}
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <div className="relative" ref={filtersRef}>
+                            <button onClick={() => { setShowFilters(v => !v); setActiveSubFilter(null) }}
+                                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition ${
+                                    roleFilters.length > 0 || planFilters.length > 0
+                                        ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
+                                        : 'bg-gray-50 dark:bg-[#1e1f22] border-gray-200 dark:border-[#1e1f22] text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                                }`}>
+                                <SlidersVertical className="w-3.5 h-3.5" />
+                                Filtros
+                                {(roleFilters.length > 0 || planFilters.length > 0) && (
+                                    <span className="ml-1 text-[10px] font-bold">{roleFilters.length + planFilters.length}</span>
+                                )}
+                            </button>
+                            {showFilters && (
+                                <div className="absolute left-0 top-full mt-1 z-[100] w-52 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1.5">
+                                    <div className="relative">
+                                        <button onMouseEnter={() => setActiveSubFilter('cargos')}
+                                            onClick={() => setActiveSubFilter(activeSubFilter === 'cargos' ? null : 'cargos')}
+                                            className="flex items-center justify-between w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
+                                        >
+                                            <span className="flex items-center gap-2.5"><Shield className="w-4 h-4 text-gray-400" /> Cargos</span>
+                                            <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                                        </button>
+                                        {activeSubFilter === 'cargos' && (
+                                            <div className="absolute left-full top-0 ml-1 w-48 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1.5 max-h-60 overflow-y-auto">
+                                                {uniqueRoles.length === 0 && (
+                                                    <p className="px-4 py-2 text-sm text-gray-400">Nenhum cargo</p>
+                                                )}
+                                                {uniqueRoles.map(name => (
+                                                    <label key={name} className="flex items-center gap-2.5 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#35373c] transition cursor-pointer">
+                                                        <input type="checkbox" checked={roleFilters.includes(name)}
+                                                            onChange={() => toggleRoleFilter(name)}
+                                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        {name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="relative">
+                                        <button onMouseEnter={() => setActiveSubFilter('planos')}
+                                            onClick={() => setActiveSubFilter(activeSubFilter === 'planos' ? null : 'planos')}
+                                            className="flex items-center justify-between w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#35373c] transition"
+                                        >
+                                            <span className="flex items-center gap-2.5"><Users className="w-4 h-4 text-gray-400" /> Planos</span>
+                                            <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                                        </button>
+                                        {activeSubFilter === 'planos' && (
+                                            <div className="absolute left-full top-0 ml-1 w-48 bg-white dark:bg-[#2b2d31] rounded-xl border border-gray-200 dark:border-[#1e1f22] shadow-lg py-1.5 max-h-60 overflow-y-auto">
+                                                {uniquePlans.length === 0 && (
+                                                    <p className="px-4 py-2 text-sm text-gray-400">Nenhum plano</p>
+                                                )}
+                                                {uniquePlans.map(name => (
+                                                    <label key={name} className="flex items-center gap-2.5 px-4 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#35373c] transition cursor-pointer">
+                                                        <input type="checkbox" checked={planFilters.includes(name)}
+                                                            onChange={() => togglePlanFilter(name)}
+                                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        {name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    {selectedIds.size > 0 && (
+                        <div className="px-6 py-2.5 bg-indigo-50/80 dark:bg-indigo-500/10 border-b border-indigo-200 dark:border-indigo-500/20 flex items-center gap-4 shrink-0">
+                            <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">{selectedIds.size} selecionado{selectedIds.size !== 1 && 's'}</span>
+                            <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-500/30" />
+                            <button onClick={() => {
+                                if (confirm(`Remover ${selectedIds.size} membro${selectedIds.size !== 1 ? 's' : ''} da comunidade?`)) {
+                                    selectedIds.forEach(id => {
+                                        const m = members.find(m => m.id === id)
+                                        if (m && !m.is_owner) router.delete(route('communities.members.remove', [community.slug, m.user.id]))
+                                    })
+                                    setSelectedIds(new Set())
+                                }
+                            }}
+                                className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition">
+                                <Trash2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />Remover selecionados
+                            </button>
+                            <button onClick={() => setSelectedIds(new Set())}
+                                className="ml-auto text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition">
+                                Limpar seleção
+                            </button>
+                        </div>
+                    )}
                     <div className="flex-1 overflow-auto">
                         <table className="w-full">
-                            <thead className="sticky top-0 bg-white dark:bg-[#2b2d31]">
+                            <thead className="sticky top-0 bg-white dark:bg-[#2b2d31] z-10">
                                 <tr className="border-b border-gray-100 dark:border-[#1e1f22]">
-                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Nome</th>
-                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Email</th>
-                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Cargo</th>
-                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Plano</th>
-                                    <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Membro desde</th>
+                                    <th className="w-12 px-4 py-3">
+                                        <input type="checkbox"
+                                            checked={filteredMembers.length > 0 && selectedIds.size === filteredMembers.length}
+                                            onChange={() => {
+                                                if (selectedIds.size === filteredMembers.length) {
+                                                    setSelectedIds(new Set())
+                                                } else {
+                                                    setSelectedIds(new Set(filteredMembers.map(m => m.id)))
+                                                }
+                                            }}
+                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                    </th>
+                                    <Th field="name">Nome</Th>
+                                    <Th field="email">Email</Th>
+                                    <Th field="role">Cargo</Th>
+                                    <Th field="plan">Plano</Th>
+                                    <Th field="joined_at">Membro desde</Th>
                                     {isOwner && (
                                         <th className="text-right px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Opções</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-[#1e1f22]">
-                                {members.length === 0 && (
+                                {filteredMembers.length === 0 && (
                                     <tr>
-                                        <td colSpan={isOwner ? 6 : 5} className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
-                                            Nenhum membro ainda.
+                                        <td colSpan={isOwner ? 7 : 6} className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
+                                            {members.length === 0 ? 'Nenhum membro ainda.' : 'Nenhum membro corresponde aos filtros.'}
                                         </td>
                                     </tr>
                                 )}
-                                {members.map((m) => (
-                                    <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-[#35373c] transition-colors group">
+                                {filteredMembers.map((m) => (
+                                    <tr key={m.id}
+                                        className={`transition-colors group ${
+                                            selectedIds.has(m.id)
+                                                ? 'bg-indigo-50/50 dark:bg-indigo-500/5'
+                                                : 'hover:bg-gray-50 dark:hover:bg-[#35373c]'
+                                        } ${m.is_owner ? 'opacity-60' : 'cursor-pointer'}`}
+                                        onClick={m.is_owner ? undefined : () => {
+                                            setSelectedIds(prev => {
+                                                const next = new Set(prev)
+                                                if (next.has(m.id)) next.delete(m.id); else next.add(m.id)
+                                                return next
+                                            })
+                                        }}>
+                                        <td className="w-12 px-4 py-3">
+                                            {!m.is_owner && (
+                                                <input type="checkbox" checked={selectedIds.has(m.id)}
+                                                    onChange={(e) => { e.stopPropagation(); setSelectedIds(prev => { const next = new Set(prev); if (next.has(m.id)) next.delete(m.id); else next.add(m.id); return next }) }}
+                                                    onClick={e => e.stopPropagation()}
+                                                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                            )}
+                                        </td>
                                         <td className="px-6 py-3">
                                             <div className="flex items-center gap-3">
                                                 <span className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
@@ -908,7 +1153,7 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                         onClick={() => setOpenDropdown(openDropdown === `role-${m.id}` ? null : `role-${m.id}`)}
                                                         className="flex items-center gap-1.5 text-sm bg-gray-50 dark:bg-[#1e1f22] text-gray-700 dark:text-gray-200 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-[#1e1f22] hover:border-gray-300 dark:hover:border-gray-600 transition cursor-pointer"
                                                     >
-                                                        {m.community_role_name}
+                                                        {m.community_role_name || <span className="text-gray-400 italic">Nenhum</span>}
                                                         <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400" />
                                                     </button>
                                                     {openDropdown === `role-${m.id}` && (
@@ -933,12 +1178,12 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                      {m.is_owner ? (
                                                          <><Crown className="w-3.5 h-3.5 text-amber-500" /> Owner</>
                                                      ) : (
-                                                         m.community_role_name
+                                                         m.community_role_name || <span className="text-gray-400 italic">Nenhum</span>
                                                      )}
                                                  </span>
                                              )}
                                          </td>
-                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400">{m.plan_name}</td>
+                                         <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400">{m.plan_name || <span className="text-gray-400 italic">Nenhum</span>}</td>
                                          <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{timeAgo(m.joined_at)}</td>
                                          {isOwner && (
                                              <td className="px-6 py-3 text-right">
@@ -973,32 +1218,32 @@ function MembersTable({ members, isOwner, community, roles }) {
                                                                             >
                                                                                  {r.name}
                                                                              </button>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                                <div className="h-px bg-gray-200 dark:bg-[#1e1f22] my-1 mx-4" />
-                                                                <button
-                                                                    onClick={() => removeMember(m.user)}
-                                                                    className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" /> Remover membro
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </td>
-                                        )}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-    )
-}
+                                                                         ))}
+                                                                     </div>
+                                                                 )}
+                                                                 <div className="h-px bg-gray-200 dark:bg-[#1e1f22] my-1 mx-4" />
+                                                                 <button
+                                                                     onClick={() => removeMember(m.user)}
+                                                                     className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+                                                                 >
+                                                                     <Trash2 className="w-4 h-4" /> Remover membro
+                                                                 </button>
+                                                             </div>
+                                                         )}
+                                                     </div>
+                                                 )}
+                                             </td>
+                                         )}
+                                     </tr>
+                                 ))}
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
+             </div>
+         </main>
+     )
+ }
 
 function RolesContent({ community, isOwner }) {
     const [editingId, setEditingId] = useState(null)
