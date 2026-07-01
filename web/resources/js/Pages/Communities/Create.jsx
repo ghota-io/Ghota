@@ -1,8 +1,9 @@
-import { Head, Link, useForm } from '@inertiajs/react'
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react'
+import { Head, Link, useForm, usePage } from '@inertiajs/react'
+import { AlertCircle, ChevronLeft, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Create({ community }) {
+    const { flash } = usePage().props
     const isEditing = !!community
 
     const [plans, setPlans] = useState(
@@ -73,6 +74,18 @@ export default function Create({ community }) {
                     </h1>
 
                     <form onSubmit={submit} className="space-y-6">
+                        {flash?.error && (
+                            <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
+                                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                <span>{flash.error}</span>
+                            </div>
+                        )}
+                        {flash?.success && (
+                            <div className="flex items-start gap-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm text-emerald-700 dark:text-emerald-400">
+                                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                <span>{flash.success}</span>
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
                             <input

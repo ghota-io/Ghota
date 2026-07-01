@@ -32,6 +32,8 @@ class CommunitySeeder extends Seeder
             'name' => 'João Pereira', 
             'password' => bcrypt('password'),
             'email_verified_at' => now(),
+            'stripe_connect_id' => 'acct_1To5gzInYJk1mUCk',
+            'stripe_connect_status' => 'completed',
         ]);
         $sofia = User::firstOrCreate(['email' => 'sofia@ghota.io'], [
             'name' => 'Sofia Mendes',

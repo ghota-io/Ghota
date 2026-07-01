@@ -9,6 +9,7 @@ use App\Models\Membership;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Stripe\StripeClient;
 
@@ -195,7 +196,17 @@ class CommunityController extends Controller
         ]);
 
         $existingIds = collect($validated['plans'])->pluck('id')->filter();
+
+        $plansToDelete = $community->plans()->whereNotIn('id', $existingIds)->get();
+        foreach ($plansToDelete as $plan) {
+            if (Subscription::where('plan_id', $plan->id)->where('status', 'active')->exists()) {
+                return redirect()->back()->with('error', "O plano \"{$plan->name}\" tem assinantes ativos e não pode ser removido.");
+            }
+        }
+
         $community->plans()->whereNotIn('id', $existingIds)->delete();
+
+        $stripe = null;
 
         foreach ($validated['plans'] as $i => $plan) {
             $data = [
@@ -207,13 +218,47 @@ class CommunityController extends Controller
             ];
 
             if (!empty($plan['id'])) {
+                $oldPlan = Plan::find($plan['id']);
                 Plan::where('id', $plan['id'])->where('community_id', $community->id)->update($data);
+
+                if ($oldPlan && (float) $oldPlan->price !== (float) $plan['price'] && empty($plan['is_free'])) {
+                    $activeSubscriptions = Subscription::where('plan_id', $plan['id'])
+                        ->where('status', 'active')
+                        ->whereNotNull('stripe_subscription_id')
+                        ->get();
+
+                    if ($activeSubscriptions->isNotEmpty()) {
+                        $stripe ??= new StripeClient(config('stripe.secret'));
+
+                        foreach ($activeSubscriptions as $subscription) {
+                            try {
+                                $stripeSub = @$stripe->subscriptions->retrieve($subscription->stripe_subscription_id);
+                                if (!empty($stripeSub->items->data)) {
+                                    $itemId = $stripeSub->items->data[0]->id;
+                                    $productId = $stripeSub->items->data[0]->price->product;
+
+                                    @$stripe->subscriptionItems->update($itemId, [
+                                        'price_data' => [
+                                            'currency' => 'eur',
+                                            'product' => $productId,
+                                            'recurring' => ['interval' => 'month'],
+                                            'unit_amount' => (int) ($plan['price'] * 100),
+                                        ],
+                                        'proration_behavior' => 'none',
+                                    ]);
+                                }
+                            } catch (\Exception $e) {
+                                Log::warning("Failed to sync Stripe price for subscription {$subscription->id}: {$e->getMessage()}");
+                            }
+                        }
+                    }
+                }
             } else {
                 Plan::create(['community_id' => $community->id, ...$data]);
             }
         }
 
-        return redirect()->route('communities.show', $community);
+        return redirect()->back();
     }
 
     public function destroy(Request $request, Community $community)
